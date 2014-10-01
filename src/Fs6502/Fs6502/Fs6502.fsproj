@@ -42,6 +42,11 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arguments.fs" />
+    <Compile Include="Modes.fs" />
+    <Compile Include="Memory.fs" />
+    <Compile Include="Flags.fs" />
+    <Compile Include="Registers.fs" />
     <Compile Include="Cpu.fs" />
   </ItemGroup>
   <PropertyGroup>

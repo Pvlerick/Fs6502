@@ -1,13 +1,13 @@
-﻿open Fs6502.Cpu
+﻿open Fs6502
 
 let cpu = new Cpu()
 
 let printState (cpu: Cpu) =
     printfn ""
     printfn "-- CPU State --"
-    printfn "Accumulator: %A" cpu.Accumulator
-    printfn "Index X: %A" cpu.IndexX
-    printfn "Index Y: %A" cpu.IndexY
+    printfn "Accumulator: %A" cpu.Registers.Accumulator
+    printfn "Index X: %A" cpu.Registers.IndexX
+    printfn "Index Y: %A" cpu.Registers.IndexY
     printfn "---------------"
     printfn ""
 
