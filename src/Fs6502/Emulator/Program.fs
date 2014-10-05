@@ -1,34 +1,30 @@
-﻿open Fs6502
-
-let cpu = new Cpu()
-
-let printState (cpu: Cpu) =
-    printfn ""
-    printfn "-- CPU State --"
-    printfn "Accumulator: %A" cpu.Registers.Accumulator
-    printfn "Index X: %A" cpu.Registers.IndexX
-    printfn "Index Y: %A" cpu.Registers.IndexY
-    printfn "---------------"
-    printfn ""
-
-let execute instruction =
-    printfn "%s" instruction
-    cpu.Execute instruction
+﻿open Assembler
 
 [<EntryPoint>]
 let main argv = 
     //printfn "%A" argv.[0]
 
-    printState cpu
+    let asm = new Assembler()
 
-    execute "LDA #$05"
-    execute "STA $05ef"
-    execute "LDA #$05"
-    execute "STA $0201"
-    execute "LDA #$08"
-    execute "STA $0202"
+    let program =
+        [
+            "  LDX #$08"
+            "decrement:"
+            "  DEX"
+            "  STX $0200"
+            "  CPX #$03"
+            "  BNE decrement"
+            "  STX $0201"
+            "  STX $0201"
+            "  BRK"
+        ]
 
-    printState cpu
+    let assembly = asm.Assemble program
+
+    printfn "%A" assembly
+    //let hex = asm.HexDump
+
+    //let dis = asm.Dissasemble hex
 
     ignore (System.Console.ReadLine())
 

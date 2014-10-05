@@ -8,7 +8,7 @@
     <ProjectGuid>bbfa8055-9984-4723-b773-065c86980353</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Fs6502</RootNamespace>
-    <AssemblyName>Fs6502</AssemblyName>
+    <AssemblyName>Fs6502.Assembler</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <Name>Fs6502</Name>
@@ -42,11 +42,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Arguments.fs" />
-    <Compile Include="Modes.fs" />
-    <Compile Include="Memory.fs" />
-    <Compile Include="Flags.fs" />
-    <Compile Include="Registers.fs" />
+    <Compile Include="Assembler.fs" />
     <Compile Include="Cpu.fs" />
   </ItemGroup>
   <PropertyGroup>

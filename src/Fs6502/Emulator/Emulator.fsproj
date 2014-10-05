@@ -8,7 +8,7 @@
     <ProjectGuid>1875766a-43c2-4cb5-8e2c-7f2cc1a65a87</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Emulator</RootNamespace>
-    <AssemblyName>Emulator</AssemblyName>
+    <AssemblyName>Fs.6502.Emulator</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
@@ -51,7 +51,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fs6502\Fs6502.fsproj">
+    <ProjectReference Include="..\Assembler\Fs6502.fsproj">
       <Name>Fs6502</Name>
       <Project>{bbfa8055-9984-4723-b773-065c86980353}</Project>
       <Private>True</Private>
