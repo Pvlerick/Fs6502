@@ -11,17 +11,17 @@ let main argv =
             "  LDX #$08"
             "decrement:"
             "  DEX"
-            "  STX $0200"
+            "  STX $0200 ;test comment"
             "  CPX #$03"
             "  BNE decrement"
-            "  STX $0201"
             "  STX $0201"
             "  BRK"
         ]
 
     let assembly = asm.Assemble program
 
-    printfn "%A" assembly
+    //printfn "%A" assembly
+    printfn "%A" (System.BitConverter.ToString assembly)
     //let hex = asm.HexDump
 
     //let dis = asm.Dissasemble hex

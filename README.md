@@ -1,4 +1,7 @@
 Fs6502
 ======
 
-An 6502 emulator in F#
+This is a little toy project.
+
+I have always been fascinated by emulators, so I took upon myself to write one.
+I picked a language I barely master in order to get the most out of the experience :-)

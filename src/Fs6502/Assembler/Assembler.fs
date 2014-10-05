@@ -62,133 +62,115 @@
 
     type private Modes =
         | Implied
-        | Immediate of byte
-        | ZeroPage of byte
-        | ZeroPageX of byte
-        | ZeroPageY of byte
-        | Absolute of byte * byte
-        | AbsoluteX of byte * byte
-        | AbsoluteY of byte * byte
-        | IndirectX of byte
-        | IndirectY of byte
+        | Immediate of string
+        | ZeroPage of string
+        | ZeroPageX of string
+        | ZeroPageY of string
+        | Absolute of string * string
+        | AbsoluteX of string * string
+        | AbsoluteY of string * string
+        | IndirectX of string
+        | IndirectY of string
         | Relative of string
 
     type Assembler() =
-        let getByte hex =
-            if hex = null then failwith "Instruction not supported"
-            else Byte.Parse(hex, Globalization.NumberStyles.HexNumber)
+        let startingAddress = 0us
 
-        //Used to map the mode to the right opcode
-        let getOpcodeForMode mode (opcodes: string[]) =
-            match mode with
-            | Modes.Implied -> [ getByte opcodes.[0] ]
-            | Modes.Immediate(arg) -> [ getByte opcodes.[1]; arg ]
-            | Modes.ZeroPage(arg) -> [ getByte opcodes.[2]; arg ]
-            | Modes.ZeroPageX(arg) -> [ getByte opcodes.[3]; arg ]
-            | Modes.ZeroPageY(arg) -> [ getByte opcodes.[4]; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte opcodes.[5]; arg1; arg0 ]
-            | Modes.AbsoluteX(arg0, arg1) -> [ getByte opcodes.[6]; arg1; arg0 ]
-            | Modes.AbsoluteY(arg0, arg1) -> [ getByte opcodes.[7]; arg1; arg0 ]
-            | Modes.IndirectX(arg) -> [ getByte opcodes.[8]; arg ]
-            | Modes.IndirectY(arg) -> [ getByte opcodes.[9]; arg ]
-            | _ -> failwith "Mode not supported"
+        let mutable labels : Map<String, UInt16> = Map.empty
 
-
-        //Program Counter management
-        let mutable programCounter = 0us
-
-        member private this.AdvanceProgramCounter count =
-            programCounter <- programCounter + count
-        
-        member private this.ProgramCounter =
-            let bytes = BitConverter.GetBytes programCounter
-            (bytes.[0], bytes.[1])
-
-
-        //Label management
-        member val private Labels : Map<String, (byte * byte)> = Map.empty with get, set
-
-        member private this.AddLabel label =
-            this.Labels <- this.Labels.Add (label, this.ProgramCounter)
+        member private this.AddLabel label index =
+            labels <- labels.Add (label, index)
 
         member private this.GetLabelAddress label =
-            match this.Labels.TryFind label with
+            match labels.TryFind label with
             | Some(address) -> address
             | None -> failwith "Label refered to was not previously declared"
 
-
         member private this.Reset =
-            programCounter <- 0us
-            this.Labels <- Map.empty
-
+            labels <- Map.empty
 
         member public this.Assemble lines =
             this.Reset
+
+            let offset = ref 0us;
+
             lines
-            |> List.collect this.Execute
+            |> List.map this.AssembleLine                                               //Convert each line to the equivalent HEX code, excluding labels
+            |> List.choose (fun instruction ->                                          //Indexing labels to retreive their addresses in the next pass
+                match (List.tryFind (fun (s: string) -> s.StartsWith(":")) instruction) with
+                | Some label ->                                                         //If it is a label, index it at the current address and DO NOT increment the program counter (offset)
+                    this.AddLabel (label.Substring 1) (startingAddress + !offset)
+                    None
+                | None ->                                                               //Else advance the program counter (offset)
+                    offset := !offset + Convert.ToUInt16(instruction.Length)
+                    Some instruction)
+            |> List.map (fun instruction ->                                             //Replace references to label with the actual address
+                match (List.tryFind (fun (s: string) -> s.StartsWith("_")) instruction) with
+                | Some label ->
+                    let destination = BitConverter.ToString(BitConverter.GetBytes(this.GetLabelAddress(label.Substring 1)))
+                    if instruction.Length = 2 then [ instruction.[0]; destination.Substring(0, 2) ]
+                    else [ instruction.[0]; destination.Substring(0, 2); destination.Substring(3, 2) ]
+                | None -> instruction)
+            |> List.collect (fun instruction -> List.map (fun b -> Byte.Parse(b, Globalization.NumberStyles.HexNumber)) instruction)
             |> List.toArray
-            |> BitConverter.ToString
 
         //Parse a line and map it to an instruction
         //See Mnemonics and Opcodes here: http://www.6502.org/tutorials/6502opcodes.html
-        member private this.Execute (line: string) =
+        member private this.AssembleLine (line: string) : string list =
             let instruction =
                 if line.Contains(";") then line.Substring(0, (line.IndexOf ';')).Trim() //Strip comments and trim
                 else line.Trim()
 
             if Regex.IsMatch(instruction, "\w+:") then
-                //The line is not an instruction, but a label.
-                //The current address needs to be registered as the pointer to that label
-                let label = Regex.Match(instruction, "(\w+):").Groups.[1].Value
-                this.AddLabel label
-                []
+                //The line is not an instruction, but a label - return it with ':' in front, it will be removed in the second pass
+                [ ":" + Regex.Match(instruction, "(\w+):").Groups.[1].Value]
             else
                 //The line is a regular instruction
                 let parseAddressingMode arguments =     
-                    let parseByte (m: Match) = Byte.Parse(m.Groups.[1].Value, Globalization.NumberStyles.HexNumber)
-                    let parseBytes (m: Match) = (Byte.Parse(m.Groups.[1].Value, Globalization.NumberStyles.HexNumber), Byte.Parse(m.Groups.[2].Value, Globalization.NumberStyles.HexNumber))
-
+                    let getMatch (m: Match) = m.Groups.[1].Value
+                    let getMatches (m: Match) = (m.Groups.[1].Value, m.Groups.[2].Value)
+                    
                     //Implied
                     if String.IsNullOrWhiteSpace(arguments) then Modes.Implied
                     else
                         //Immediate
                         let mutable m = Regex.Match(arguments, "#\$([0-9a-fA-F]{2})")
-                        if (m.Success) then Modes.Immediate(parseByte m)
+                        if (m.Success) then Modes.Immediate(getMatch m)
                         else
                             //Indirect, X
                             let m = Regex.Match(arguments, "\(\$([0-9a-fA-F]{2}),X\)")
-                            if (m.Success) then Modes.IndirectX(parseByte m)
+                            if (m.Success) then Modes.IndirectX(getMatch m)
                             else
                                 //Indirect, Y
                                 let m = Regex.Match(arguments, "\(\$([0-9a-fA-F]{2})\),Y")
-                                if (m.Success) then Modes.IndirectY(parseByte m)
+                                if (m.Success) then Modes.IndirectY(getMatch m)
                                 else
                                     //ZeroPage, X
                                     let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2}),X")
-                                    if (m.Success) then Modes.ZeroPageX(parseByte m)
+                                    if (m.Success) then Modes.ZeroPageX(getMatch m)
                                     else
                                         //ZeroPage, Y
                                         let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2}),Y")
-                                        if (m.Success) then Modes.ZeroPageX(parseByte m)
+                                        if (m.Success) then Modes.ZeroPageX(getMatch m)
                                         else
                                             //Absolute, X
                                             let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2})([0-9a-fA-F]{2}),X")
-                                            if (m.Success) then Modes.AbsoluteX(parseBytes m)
+                                            if (m.Success) then Modes.AbsoluteX(getMatches m)
                                             else
                                                 //Absolute, Y
                                                 let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2})([0-9a-fA-F]{2}),Y")
-                                                if (m.Success) then Modes.AbsoluteY(parseBytes m)
+                                                if (m.Success) then Modes.AbsoluteY(getMatches m)
                                                 else
                                                     //Absolute
                                                     let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2})([0-9a-fA-F]{2})")
-                                                    if (m.Success) then Modes.Absolute(parseBytes m)
+                                                    if (m.Success) then Modes.Absolute(getMatches m)
                                                     else
                                                         //ZeroPage
                                                         let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2})")
-                                                        if (m.Success) then Modes.ZeroPage(parseByte m)
+                                                        if (m.Success) then Modes.ZeroPage(getMatch m)
                                                         else
                                                             let m = Regex.Match(arguments, "(\w+)")
-                                                            if (m.Success) then Modes.Relative(m.Groups.[1].Value)
+                                                            if (m.Success) then Modes.Relative(getMatch m)
                                                             else failwith "Cannot parse arguments"
 
                 let mode = parseAddressingMode(instruction.Substring 3)
@@ -259,115 +241,116 @@
         member private this.Branch mnemonics mode =
             let destination =
                 match mode with
-                | Modes.Relative(label) -> this.GetLabelAddress label
+                | Modes.Relative(label) -> "_" + label
                 | _ -> failwith "Addressing mode not valid for a branch instruction"
 
             match mnemonics with
-            | Mnemonics.BPL -> [ getByte "10"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BMI -> [ getByte "30"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BVC -> [ getByte "50"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BVS -> [ getByte "70"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BCC -> [ getByte "90"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BCS -> [ getByte "B0"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BNE -> [ getByte "D0"; fst destination; snd destination ] //TODO: fetch the address of the label
-            | Mnemonics.BEQ -> [ getByte "F0"; fst destination; snd destination ] //TODO: fetch the address of the label
+            | Mnemonics.BPL -> [ "10"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BMI -> [ "30"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BVC -> [ "50"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BVS -> [ "70"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BCC -> [ "90"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BCS -> [ "B0"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BNE -> [ "D0"; destination ] //TODO: fetch the address of the label
+            | Mnemonics.BEQ -> [ "F0"; destination ] //TODO: fetch the address of the label
             | _ -> failwith "Not a branching mnemonic"
 
         //...BRK - Break
-        member private this.BRK mode = getOpcodeForMode mode [| "00"; null; null; null; null; null; null; null; null; null |]
+        member private this.BRK mode =
+            match mode with
+            | Modes.Implied -> [ "00" ]
+            | _ -> failwith "Not supported"
 
         //...CMP - Compare
         member private this.CMP mode =
-            
-            getOpcodeForMode mode [| null; "C9"; "C5"; "D4"; null; "EC"; null; null; null; null |]
-//            match mode with
-//            | Modes.Immediate(arg) -> [ getByte "C9"; arg ]
-//            | Modes.ZeroPage(arg) -> [ getByte "C5"; arg ]
-//            | Modes.ZeroPageX(arg) -> [ getByte "D5"; arg ]
-//            | Modes.Absolute(arg0, arg1) -> [ getByte "EC"; arg1; arg0 ]
-//            | _ -> failwith "Not supported"
+            match mode with
+            | Modes.Immediate(arg) -> [ "C9"; arg ]
+            | Modes.ZeroPage(arg) -> [ "C5"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "D5"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "EC"; arg1; arg0 ]
+            | _ -> failwith "Not supported"
 
         //...CPX - Compare X Register
         member private this.CPX mode =
             match mode with
-            | Modes.Immediate(arg) -> [ getByte "E0"; arg ]
-            | Modes.ZeroPage(arg) -> [ getByte "E4"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "EC"; arg1; arg0 ]
+            | Modes.Immediate(arg) -> [ "E0"; arg ]
+            | Modes.ZeroPage(arg) -> [ "E4"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "EC"; arg1; arg0 ]
             | _ -> failwith "Not supported"
 
         //...CPY - Compare Y Register
         member private this.CPY mode =
             match mode with
-            | Modes.Immediate(arg) -> [ getByte "C0"; arg ]
-            | Modes.ZeroPage(arg) -> [ getByte "C4"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "CC"; arg1; arg0 ]
+            | Modes.Immediate(arg) -> [ "C0"; arg ]
+            | Modes.ZeroPage(arg) -> [ "C4"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "CC"; arg1; arg0 ]
             | _ -> failwith "Not supported"
 
         //...DEX - Decrement X Register
         member private this.DEX mode =
             match mode with
-            | Modes.Implied -> [ getByte "CA" ]
+            | Modes.Implied -> [ "CA" ]
             | _ -> failwith "Not supported"
 
         //...DEY - Decrement Y Register
         member private this.DEY mode =
             match mode with
-            | Modes.Implied -> [ getByte "88" ]
+            | Modes.Implied -> [ "88" ]
             | _ -> failwith "Not supported"
 
         //...LAD - Load Accumulator
         member private this.LDA mode = 
             match mode with
-            | Modes.Immediate(arg) -> [ getByte "A9"; arg ]
-            | Modes.ZeroPage(arg) -> [ getByte "A5"; arg ]
-            | Modes.ZeroPageX(arg) -> [ getByte "B5"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "AD"; arg1; arg0 ]
-            | Modes.AbsoluteX(arg0, arg1) -> [ getByte "BD"; arg1; arg0 ]
-            | Modes.AbsoluteY(arg0, arg1) -> [ getByte "B9"; arg1; arg0 ]
-            | Modes.IndirectX(arg) -> [ getByte "A1"; arg ]
-            | Modes.IndirectY(arg) -> [ getByte "B1"; arg ]
+            | Modes.Immediate(arg) -> [ "A9"; arg ]
+            | Modes.ZeroPage(arg) -> [ "A5"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "B5"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "AD"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "BD"; arg1; arg0 ]
+            | Modes.AbsoluteY(arg0, arg1) -> [ "B9"; arg1; arg0 ]
+            | Modes.IndirectX(arg) -> [ "A1"; arg ]
+            | Modes.IndirectY(arg) -> [ "B1"; arg ]
             | _ -> failwith "Not supported"
 
         //...LDX - Load X Register
         member private this.LDX mode =
             match mode with
-            | Modes.Immediate(arg) -> [ getByte "A2"; arg ]
-            | Modes.ZeroPage(arg) -> [ getByte "A6"; arg ]
-            | Modes.ZeroPageY(arg) -> [ getByte "B6"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "AE"; arg1; arg0 ]
-            | Modes.AbsoluteY(arg0, arg1) -> [ getByte "BE"; arg1; arg0 ]
+            | Modes.Immediate(arg) -> [ "A2"; arg ]
+            | Modes.ZeroPage(arg) -> [ "A6"; arg ]
+            | Modes.ZeroPageY(arg) -> [ "B6"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "AE"; arg1; arg0 ]
+            | Modes.AbsoluteY(arg0, arg1) -> [ "BE"; arg1; arg0 ]
             | _ -> failwith "Not supported"
 
         //...NOP - No Operation
         member private this.NOP mode =
             match mode with
-            | Modes.Implied -> [ getByte "EA" ]
+            | Modes.Implied -> [ "EA" ]
             | _ -> failwith "Not supported"
 
         //...STA - Store A Register
         member private this.STA mode =
             match mode with
-            | Modes.ZeroPage(arg) -> [ getByte "85"; arg ]
-            | Modes.ZeroPageX(arg) -> [ getByte "95"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "8D"; arg1; arg0 ]
-            | Modes.AbsoluteX(arg0, arg1) -> [ getByte "9D"; arg1; arg0 ]
-            | Modes.AbsoluteY(arg0, arg1) -> [ getByte "99"; arg1; arg0 ]
-            | Modes.IndirectX(arg) -> [ getByte "81"; arg ]
-            | Modes.IndirectY(arg) -> [ getByte "91"; arg ]
+            | Modes.ZeroPage(arg) -> [ "85"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "95"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "8D"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "9D"; arg1; arg0 ]
+            | Modes.AbsoluteY(arg0, arg1) -> [ "99"; arg1; arg0 ]
+            | Modes.IndirectX(arg) -> [ "81"; arg ]
+            | Modes.IndirectY(arg) -> [ "91"; arg ]
             | _ -> failwith "Not supported"
 
         //...STX - Store X Register
         member private this.STX mode =
             match mode with
-            | Modes.ZeroPage(arg) -> [ getByte "86"; arg ]
-            | Modes.ZeroPageY(arg) -> [ getByte "96"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "8E"; arg1; arg0 ]
+            | Modes.ZeroPage(arg) -> [ "86"; arg ]
+            | Modes.ZeroPageY(arg) -> [ "96"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "8E"; arg1; arg0 ]
             | _ -> failwith "Not supported"
 
         //...STY - Store Y Register
         member private this.STY mode =
             match mode with
-            | Modes.ZeroPage(arg) -> [ getByte "84"; arg ]
-            | Modes.ZeroPageX(arg) -> [ getByte "94"; arg ]
-            | Modes.Absolute(arg0, arg1) -> [ getByte "8C"; arg1; arg0 ]
+            | Modes.ZeroPage(arg) -> [ "84"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "94"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "8C"; arg1; arg0 ]
             | _ -> failwith "Not supported"
