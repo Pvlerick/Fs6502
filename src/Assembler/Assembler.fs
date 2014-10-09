@@ -1,4 +1,4 @@
-﻿module Assembler
+﻿namespace Assembler
     open System
     open System.Text.RegularExpressions
 
@@ -16,8 +16,9 @@
         | IndirectY of string
         | Relative of string
 
-    type Assembler() =
-        let startingAddress = 1536us
+    type Assembler(startingAddress0) =
+        let mutable startingAddress = startingAddress0 //1536us
+        new() = Assembler(0us)
 
         member private this.IndexLabels (lines: string list list) =
             let programCounter = ref startingAddress //aka PC
@@ -70,7 +71,7 @@
             //Assemble every line
             //...labels and references to labels are left with their name but marked - ":" in front of a label; "_" in front of a reference to a label
             //...the resulting list is a list of instructions, each instruction being a list of one, two or three bytes
-            let instructions = lines |> List.choose this.getInstruction |> List.map this.AssembleInstruction
+            let instructions = lines |> Seq.toList |> List.choose this.getInstruction |> List.map this.AssembleInstruction
 
             //First pass: index the labels, now that we know the program's size and can caculate their exact position
             let labels = this.IndexLabels instructions
@@ -83,7 +84,7 @@
             //Third pass: replace references to labels by the corresponding address
             |> this.ReplaceLabels !labels
             |> List.collect (fun instruction -> List.map (fun b -> Byte.Parse(b, Globalization.NumberStyles.HexNumber)) instruction)
-            |> List.toArray
+            |> List.toSeq
 
 
         //Parse a line and map it to an instruction
