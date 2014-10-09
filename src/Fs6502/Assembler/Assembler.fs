@@ -2,64 +2,6 @@
     open System
     open System.Text.RegularExpressions
 
-    type private Mnemonics =
-        | ADC = 1
-        | AND = 2
-        | ASL = 3
-        | BCC = 4
-        | BCS = 5
-        | BEQ = 6
-        | BIT = 7
-        | BMI = 8
-        | BNE = 9
-        | BPL = 10
-        | BRK = 11
-        | BVC = 12
-        | BVS = 13
-        | CLC = 14
-        | CLD = 15
-        | CLI = 16
-        | CLV = 17
-        | CMP = 18
-        | CPX = 19
-        | CPY = 20
-        | DEC = 21
-        | DEX = 22
-        | DEY = 23
-        | EOR = 24
-        | INC = 25
-        | INX = 26
-        | INY = 27
-        | JMP = 28
-        | JSR = 29
-        | LDA = 30
-        | LDX = 31
-        | LDY = 32
-        | LSR = 33
-        | NOP = 34
-        | ORA = 35
-        | PHA = 36
-        | PHP = 37
-        | PLA = 38
-        | PLP = 39
-        | ROL = 40
-        | ROR = 41
-        | RTI = 42
-        | RTS = 43
-        | SBC = 44
-        | SEC = 45
-        | SED = 46
-        | SEI = 47
-        | STA = 48
-        | STX = 49
-        | STY = 50
-        | TAX = 51
-        | TAY = 52
-        | TSX = 53
-        | TXA = 54
-        | TXS = 55
-        | TYA = 56
-
     type private Modes =
         | Implied
         | Immediate of string
@@ -203,67 +145,68 @@
                                                                 if (m.Success) then Modes.Relative(getMatch m)
                                                                 else failwith "Cannot parse arguments"
 
-                let mode = parseAddressingMode(instruction.Substring 3)
-                let mnemonic = Enum.Parse(typeof<Mnemonics>, instruction.Substring(0, 3)) :?> Mnemonics
+                let mnemonic = instruction.Substring(0, 3)
+                let mode = parseAddressingMode(instruction.Substring(3))
+                
 
                 //Get the instruction and execute it
                 match mnemonic with
-                    | Mnemonics.ADC -> this.ADC mode
-                    | Mnemonics.AND -> this.AND mode
-    //                | Mnemonics.ASL -> this.ASL mode
-                    | Mnemonics.BCC -> this.Branch Mnemonics.BCC mode
-                    | Mnemonics.BCS -> this.Branch Mnemonics.BCS mode
-                    | Mnemonics.BEQ -> this.Branch Mnemonics.BEQ mode
-                    | Mnemonics.BIT args -> this.BIT mode
-                    | Mnemonics.BMI -> this.Branch Mnemonics.BMI mode
-                    | Mnemonics.BNE -> this.Branch Mnemonics.BNE mode
-                    | Mnemonics.BPL -> this.Branch Mnemonics.BPL mode
-                    | Mnemonics.BRK -> this.BRK mode
-                    | Mnemonics.BVC -> this.Branch Mnemonics.BVC mode
-                    | Mnemonics.BVS -> this.Branch Mnemonics.BVS mode
-                    | Mnemonics.CLC -> this.CLC mode
-                    | Mnemonics.CLD -> this.CLD mode
-                    | Mnemonics.CLI -> this.CLI mode
-                    | Mnemonics.CLV -> this.CLV mode
-                    | Mnemonics.CMP -> this.CMP mode
-                    | Mnemonics.CPX -> this.CPX mode
-                    | Mnemonics.CPY -> this.CPY mode
-                    | Mnemonics.DEC -> this.DEC mode
-                    | Mnemonics.DEX -> this.DEX mode
-                    | Mnemonics.DEY -> this.DEY mode
-    //                | Mnemonics.EOR -> this.EOR mode
-                    | Mnemonics.INC -> this.INC mode
-                    | Mnemonics.INX -> this.INX mode
-                    | Mnemonics.INY -> this.INY mode
-                    | Mnemonics.JMP -> this.JMP mode
-                    | Mnemonics.JSR -> this.JSR mode
-                    | Mnemonics.LDA -> this.LDA mode
-                    | Mnemonics.LDX -> this.LDX mode
-                    | Mnemonics.LDY -> this.LDY mode
-                    | Mnemonics.LSR -> this.LSR mode
-                    | Mnemonics.NOP -> this.NOP mode
-    //                | Mnemonics.ORA -> this.ORA mode
-                    | Mnemonics.PHA -> this.PHA mode
-                    | Mnemonics.PHP -> this.PHP mode
-                    | Mnemonics.PLA -> this.PLA mode
-                    | Mnemonics.PLP -> this.PLP mode
-    //                | Mnemonics.ROL -> this.ROL mode
-    //                | Mnemonics.ROR -> this.ROR mode
-    //                | Mnemonics.RTI -> this.RTI mode
-                    | Mnemonics.RTS -> this.RTS mode
-                    | Mnemonics.SBC -> this.SBC mode
-                    | Mnemonics.SEC -> this.SEC mode
-                    | Mnemonics.SED -> this.SED mode
-                    | Mnemonics.SEI -> this.SEI mode
-                    | Mnemonics.STA -> this.STA mode
-                    | Mnemonics.STX -> this.STX mode
-                    | Mnemonics.STY -> this.STY mode
-                    | Mnemonics.TAX -> this.TAX mode
-    //                | Mnemonics.TAY -> this.TAY mode
-                    | Mnemonics.TSX -> this.TSX mode
-                    | Mnemonics.TXA -> this.TXA mode
-                    | Mnemonics.TXS -> this.TXS mode
-    //                | Mnemonics.TYA -> this.TYA mode
+                    | "ADC" -> this.ADC mode
+                    | "AND" -> this.AND mode
+                    | "ASL" -> this.ASL mode
+                    | "BCC" -> this.Branch "BCC" mode
+                    | "BCS" -> this.Branch "BCS" mode
+                    | "BEQ" -> this.Branch "BEQ" mode
+                    | "BIT" -> this.BIT mode
+                    | "BMI" -> this.Branch "BMI" mode
+                    | "BNE" -> this.Branch "BNE" mode
+                    | "BPL" -> this.Branch "BPL" mode
+                    | "BRK" -> this.BRK mode
+                    | "BVC" -> this.Branch "BVC" mode
+                    | "BVS" -> this.Branch "BVS" mode
+                    | "CLC" -> this.CLC mode
+                    | "CLD" -> this.CLD mode
+                    | "CLI" -> this.CLI mode
+                    | "CLV" -> this.CLV mode
+                    | "CMP" -> this.CMP mode
+                    | "CPX" -> this.CPX mode
+                    | "CPY" -> this.CPY mode
+                    | "DEC" -> this.DEC mode
+                    | "DEX" -> this.DEX mode
+                    | "DEY" -> this.DEY mode
+                    | "EOR" -> this.EOR mode
+                    | "INC" -> this.INC mode
+                    | "INX" -> this.INX mode
+                    | "INY" -> this.INY mode
+                    | "JMP" -> this.JMP mode
+                    | "JSR" -> this.JSR mode
+                    | "LDA" -> this.LDA mode
+                    | "LDX" -> this.LDX mode
+                    | "LDY" -> this.LDY mode
+                    | "LSR" -> this.LSR mode
+                    | "NOP" -> this.NOP mode
+                    | "ORA" -> this.ORA mode
+                    | "PHA" -> this.PHA mode
+                    | "PHP" -> this.PHP mode
+                    | "PLA" -> this.PLA mode
+                    | "PLP" -> this.PLP mode
+                    | "ROL" -> this.ROL mode
+                    | "ROR" -> this.ROR mode
+                    | "RTI" -> this.RTI mode
+                    | "RTS" -> this.RTS mode
+                    | "SBC" -> this.SBC mode
+                    | "SEC" -> this.SEC mode
+                    | "SED" -> this.SED mode
+                    | "SEI" -> this.SEI mode
+                    | "STA" -> this.STA mode
+                    | "STX" -> this.STX mode
+                    | "STY" -> this.STY mode
+                    | "TAX" -> this.TAX mode
+                    | "TAY" -> this.TAY mode
+                    | "TSX" -> this.TSX mode
+                    | "TXA" -> this.TXA mode
+                    | "TXS" -> this.TXS mode
+                    | "TYA" -> this.TYA mode
                     | _ -> failwith "Mnemonics not supported"
 
         //Instructions
@@ -275,14 +218,14 @@
                 | _ -> failwith "Addressing mode not valid for a branch instruction"
 
             match mnemonics with
-            | Mnemonics.BPL -> [ "10"; destination ]
-            | Mnemonics.BMI -> [ "30"; destination ]
-            | Mnemonics.BVC -> [ "50"; destination ]
-            | Mnemonics.BVS -> [ "70"; destination ]
-            | Mnemonics.BCC -> [ "90"; destination ]
-            | Mnemonics.BCS -> [ "B0"; destination ]
-            | Mnemonics.BNE -> [ "D0"; destination ]
-            | Mnemonics.BEQ -> [ "F0"; destination ]
+            | "BPL" -> [ "10"; destination ]
+            | "BMI" -> [ "30"; destination ]
+            | "BVC" -> [ "50"; destination ]
+            | "BVS" -> [ "70"; destination ]
+            | "BCC" -> [ "90"; destination ]
+            | "BCS" -> [ "B0"; destination ]
+            | "BNE" -> [ "D0"; destination ]
+            | "BEQ" -> [ "F0"; destination ]
             | _ -> failwith "Not a branching mnemonic"
 
         //...ADC - Add with Carry
@@ -308,6 +251,16 @@
             | Modes.AbsoluteX(arg0, arg1) -> [ "3D"; arg1; arg0 ]
             | Modes.AbsoluteY(arg0, arg1) -> [ "39"; arg1; arg0 ]
             | Modes.Indirect(arg0, arg1) -> [ "21"; arg1; arg0 ]
+            | _ -> failwith "Not supported"
+
+        //...ASL - Arithmetic Shift Left
+        member private this.ASL mode =
+            match mode with
+            | Modes.Implied -> [ "0A" ] //Documentation refers to an "Accumulator" addressing mode... Seems that "ASL" and "ASL A" are both valid.
+            | Modes.ZeroPage(arg) -> [ "06"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "16"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "0E"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "1E"; arg1; arg0 ]
             | _ -> failwith "Not supported"
 
         //...BIT - Test BITs
@@ -391,6 +344,19 @@
         member private this.DEY mode =
             match mode with
             | Modes.Implied -> [ "88" ]
+            | _ -> failwith "Not supported"
+
+        //...EOR - Bitwise Exclusive OR
+        member private this.EOR mode =
+            match mode with
+            | Modes.Immediate(arg) -> [ "49"; arg ]
+            | Modes.ZeroPage(arg) -> [ "45"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "55"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "4D"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "5D"; arg1; arg0 ]
+            | Modes.AbsoluteY(arg0, arg1) -> [ "59"; arg1; arg0 ]
+            | Modes.IndirectX(arg) -> [ "41"; arg ]
+            | Modes.IndirectY(arg) -> [ "51"; arg ]
             | _ -> failwith "Not supported"
 
         //...INC - Increment Memory
@@ -478,6 +444,19 @@
             | Modes.Implied -> [ "EA" ]
             | _ -> failwith "Not supported"
 
+        //...ORA - Bitwise OR with Accumulator
+        member private this.ORA mode =
+            match mode with
+            | Modes.Immediate(arg) -> [ "09"; arg ]
+            | Modes.ZeroPage(arg) -> [ "05"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "15"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "0D"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "1D"; arg1; arg0 ]
+            | Modes.AbsoluteY(arg0, arg1) -> [ "19"; arg1; arg0 ]
+            | Modes.IndirectX(arg) -> [ "01"; arg ]
+            | Modes.IndirectY(arg) -> [ "11"; arg ]
+            | _ -> failwith "Not supported"
+
         //...PHA - Push Accumulator
         member private this.PHA mode =
             match mode with
@@ -500,6 +479,32 @@
         member private this.PLP mode =
             match mode with
             | Modes.Implied -> [ "28" ]
+            | _ -> failwith "Not supported"
+
+        //... ROL - Rotata Left
+        member private this.ROL mode =
+            match mode with
+            | Modes.Implied -> [ "2A" ] //Documentation refers to an "Accumulator" addressing mode... Seems that "ROL" and "ROL A" are both valid.
+            | Modes.ZeroPage(arg) -> [ "26"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "36"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "2E"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "3E"; arg1; arg0 ]
+            | _ -> failwith "Not supported"
+
+        //... ROR - Rotata Right
+        member private this.ROR mode =
+            match mode with
+            | Modes.Implied -> [ "6A" ] //Documentation refers to an "Accumulator" addressing mode... Seems that "ROR" and "ROR A" are both valid.
+            | Modes.ZeroPage(arg) -> [ "66"; arg ]
+            | Modes.ZeroPageX(arg) -> [ "76"; arg ]
+            | Modes.Absolute(arg0, arg1) -> [ "6E"; arg1; arg0 ]
+            | Modes.AbsoluteX(arg0, arg1) -> [ "7E"; arg1; arg0 ]
+            | _ -> failwith "Not supported"
+
+        //...RTI - Return from Interrupt
+        member private this.RTI mode =
+            match mode with
+            | Modes.Implied -> [ "40" ]
             | _ -> failwith "Not supported"
 
         //...RTS - Return from Subroutine
@@ -573,6 +578,12 @@
             | Modes.Implied -> [ "AA" ]
             | _ -> failwith "Not supported"
 
+        //...TAY - Transfer Accumulator to Y
+        member private this.TAY mode =
+            match mode with
+            | Modes.Implied -> [ "A8" ]
+            | _ -> failwith "Not supported"
+
         //...TSX - Transfer Stack pointer to X
         member private this.TSX mode =
             match mode with
@@ -583,6 +594,12 @@
         member private this.TXA mode =
             match mode with
             | Modes.Implied -> [ "8A" ]
+            | _ -> failwith "Not supported"
+
+        //...TYA - Transfer Y to Accumulator
+        member private this.TYA mode =
+            match mode with
+            | Modes.Implied -> [ "98" ]
             | _ -> failwith "Not supported"
 
         //...TXS - Transfer X to Stack pointer
