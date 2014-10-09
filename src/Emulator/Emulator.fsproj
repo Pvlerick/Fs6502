@@ -51,8 +51,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Assembler\Fs6502.fsproj">
-      <Name>Fs6502</Name>
+    <ProjectReference Include="..\Assembler\Assembler.fsproj">
+      <Name>Assembler</Name>
       <Project>{bbfa8055-9984-4723-b773-065c86980353}</Project>
       <Private>True</Private>
     </ProjectReference>

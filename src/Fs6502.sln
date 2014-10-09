@@ -5,7 +5,9 @@ VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Emulator", "Emulator\Emulator.fsproj", "{1875766A-43C2-4CB5-8E2C-7F2CC1A65A87}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Fs6502", "Assembler\Fs6502.fsproj", "{BBFA8055-9984-4723-B773-065C86980353}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Assembler", "Assembler\Assembler.fsproj", "{BBFA8055-9984-4723-B773-065C86980353}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembler.Test", "Assembler.Test\Assembler.Test.csproj", "{A8C5EAE0-9F47-4934-B209-40934F62B936}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{BBFA8055-9984-4723-B773-065C86980353}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBFA8055-9984-4723-B773-065C86980353}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBFA8055-9984-4723-B773-065C86980353}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8C5EAE0-9F47-4934-B209-40934F62B936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8C5EAE0-9F47-4934-B209-40934F62B936}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8C5EAE0-9F47-4934-B209-40934F62B936}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8C5EAE0-9F47-4934-B209-40934F62B936}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
