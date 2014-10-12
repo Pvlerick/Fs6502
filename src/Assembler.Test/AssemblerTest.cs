@@ -1,8 +1,7 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using NUnit.Framework;
 
 namespace Assembler.Test
 {
@@ -32,9 +31,9 @@ namespace Assembler.Test
             }
         }
 
-        //Test code courtesy of Nick Morgan, https://skilldrick.github.io/easy6502/
         protected static AssemblerTestData[] TestData =
         {
+            //Following code courtesy of Nick Morgan, https://skilldrick.github.io/easy6502/
             new  AssemblerTestData(
                 1536,
                 new String[]
