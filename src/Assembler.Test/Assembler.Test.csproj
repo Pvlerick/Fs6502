@@ -7,8 +7,8 @@
     <ProjectGuid>{A8C5EAE0-9F47-4934-B209-40934F62B936}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Assembler.Test</RootNamespace>
-    <AssemblyName>Assembler.Test</AssemblyName>
+    <RootNamespace>Fs6502.Assembler.Test</RootNamespace>
+    <AssemblyName>Fs6502.Assembler.Test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

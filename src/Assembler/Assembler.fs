@@ -1,4 +1,4 @@
-﻿namespace Assembler
+﻿namespace Fs6502.Assembler
     open System
     open System.Text.RegularExpressions
 
@@ -124,7 +124,7 @@
                                         else
                                             //ZeroPage, Y
                                             let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2}),Y")
-                                            if (m.Success) then AddressingModes.ZeroPageX(getMatch m)
+                                            if (m.Success) then AddressingModes.ZeroPageY(getMatch m)
                                             else
                                                 //Absolute, X
                                                 let m = Regex.Match(arguments, "\$([0-9a-fA-F]{2})([0-9a-fA-F]{2}),X")

@@ -7,8 +7,8 @@
     <ProjectGuid>{30EDEF10-2AA8-431E-B5ED-7025A6682328}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Emulator.Test</RootNamespace>
-    <AssemblyName>Emulator.Test</AssemblyName>
+    <RootNamespace>Fs6502.Emulator.Test</RootNamespace>
+    <AssemblyName>Fs6502.Emulator.Test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -49,6 +49,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Assembler\Assembler.fsproj">
+      <Project>{bbfa8055-9984-4723-b773-065c86980353}</Project>
+      <Name>Assembler</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Emulator\Emulator.fsproj">
       <Project>{1875766a-43c2-4cb5-8e2c-7f2cc1a65a87}</Project>
       <Name>Emulator</Name>

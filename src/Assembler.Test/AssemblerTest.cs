@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assembler.Test
+namespace Fs6502.Assembler.Test
 {
     [TestFixture]
     public class AssemblerTest

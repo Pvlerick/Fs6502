@@ -1,4 +1,4 @@
-﻿namespace Emulator
+﻿namespace Fs6502.Emulator
     module ByteExtension =
         type System.Byte with
             member this.ToUInt16 = System.BitConverter.ToUInt16([| this; 0uy; |], 0)
@@ -61,7 +61,7 @@
 
         member this.Item
             with get (address: Word) = memory.[address.Msb.ToInt32, address.Lsb.ToInt32]
-            and internal set (address: Word) value = memory.[address.Msb.ToInt32, address.Lsb.ToInt32] <- value
+            and set (address: Word) value = memory.[address.Msb.ToInt32, address.Lsb.ToInt32] <- value
 
     type Status =
         {
@@ -112,6 +112,14 @@
                 //Can cross page boundaries
             | _ -> failwith "Addressing mode is not ZeroPage, Absolute or Indirect"
 
+        //Get value from the Address mode
+        let gv mode status =
+            match mode with
+            | Immediate(arg) -> arg, false
+            | _ ->
+                let (address, pageCrossed) = ga mode status
+                status.Memory.[address], pageCrossed
+
         member val public Status =
             {
                 Accumulator = 0uy
@@ -136,7 +144,7 @@
             with get, set
 
         member this.Execute entryPoint (machineCode: byte[]) =
-            let gba (offset: int) = machineCode.[(this.Status.ProgramCounter.Substract (entryPoint - (Convert.ToUInt16 2us))).ToInt32]  //GetByteAhead
+            let gba (offset: int) = machineCode.[(this.Status.ProgramCounter.Substract (entryPoint - (Convert.ToUInt16 offset))).ToInt32]  //GetByteAhead
             
             //let endingAddress = ((new Word(startingAddress)).Add Convert.ToUInt16(machineCode.Length)).ToUInt16
             let endPoint = ((new Word(entryPoint)).Add (Convert.ToUInt16 machineCode.Length)).ToUInt16
@@ -193,23 +201,23 @@
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA5uy -> this.LDA (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xB5uy -> this.LDA (ZeroPageX(gba 1)) (apc this.Status 2) 4
-                    | 0xADuy -> this.LDA (Absolute(new Word(gba 2, gba 1))) (apc this.Status 2) 4
-                    | 0xBDuy -> this.LDA (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 2) 4
-                    | 0xB9uy -> this.LDA (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 2) 4
+                    | 0xADuy -> this.LDA (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xBDuy -> this.LDA (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xB9uy -> this.LDA (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
                     | 0xA1uy -> this.LDA (IndirectX(gba 1)) (apc this.Status 2) 6
-                    | 0xB1uy -> this.LDA (IndirectY(gba 1)) (apc this.Status 2) 2
+                    | 0xB1uy -> this.LDA (IndirectY(gba 1)) (apc this.Status 2) 5
                     //LDX - Load X Register
                     | 0xA2uy -> this.LDX (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA6uy -> this.LDX (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xB6uy -> this.LDX (ZeroPageY(gba 1)) (apc this.Status 2) 4
-                    | 0xAEuy -> this.LDX (Absolute(new Word(gba 2, gba 1))) (apc this.Status 2) 4
-                    | 0xBEuy -> this.LDX (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 2) 4
+                    | 0xAEuy -> this.LDX (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xBEuy -> this.LDX (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
                     //LDY - Load X Register
                     | 0xA0uy -> this.LDY (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA4uy -> this.LDY (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xB4uy -> this.LDY (ZeroPageX(gba 1)) (apc this.Status 2) 4
-                    | 0xACuy -> this.LDY (Absolute(new Word(gba 2, gba 1))) (apc this.Status 2) 4
-                    | 0xBCuy -> this.LDY (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 2) 4
+                    | 0xACuy -> this.LDY (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xBCuy -> this.LDY (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
                     //Store Instructions - STA, STX, STY
                     | 0x85uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x95uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
@@ -240,10 +248,11 @@
                 | 0xF0uy -> status.Flags.Zero           //BEQ
                 | _ -> failwithf "'%s' is not a branching opcode" (BitConverter.ToString [| opcode |])
 
-            //getArgumentValue
             let pc =
-                if jump then (if offset < 0x80uy then status.ProgramCounter.Add(offset) else (status.ProgramCounter.Substract (0xFFuy - offset)).Add 1us)
-                else status.ProgramCounter
+                if jump then
+                    if offset < 0x80uy then status.ProgramCounter.Add(offset) //Jump forward
+                    else status.ProgramCounter.Substract(0xFFuy - offset + 1uy) //Jump backward
+                else status.ProgramCounter //Don't jump, you fool!
             {
                 (ac status (2 + (if jump then 1 else 0)) (pc.Msb > status.ProgramCounter.Msb)) with
                     ProgramCounter = pc
@@ -264,24 +273,24 @@
             let setFlags value flags = { flags with Zero = value = 0x00uy; Negavtive = value >= 0x80uy }
 
             match opcode with
-            | 0xAAuy -> { status with X = status.Accumulator }                                  //TAX
-            | 0x8Auy -> { status with Accumulator = status.X }                                  //TXA
-            | 0xCAuy ->                                                                         //DEX
+            | 0xAAuy -> { (ac status 2 false) with X = status.Accumulator }                                  //TAX
+            | 0x8Auy -> { (ac status 2 false) with Accumulator = status.X }                                  //TXA
+            | 0xCAuy ->                                                                                      //DEX
                 let newX = status.X - 01uy
                 { (ac status 2 false) with X = newX; Flags = setFlags newX status.Flags }
-            | 0xE8uy ->                                                                         //INX
+            | 0xE8uy ->                                                                                      //INX
                 let newX = status.X + 01uy
                 { (ac status 2 false) with X = newX; Flags = setFlags newX status.Flags }
-            | 0xA8uy -> { status with Y = status.Accumulator }                                  //TAY
-            | 0x98uy -> { status with Accumulator = status.Y }                                  //TYA
-            | 0x88uy ->                                                                         //DEX
+            | 0xA8uy -> { (ac status 2 false) with Y = status.Accumulator }                                  //TAY
+            | 0x98uy -> { (ac status 2 false) with Accumulator = status.Y }                                  //TYA
+            | 0x88uy ->                                                                                      //DEY
                 let newY = status.Y - 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
-            | 0xC8uy ->                                                                         //INX
+            | 0xC8uy ->                                                                                      //IN
                 let newY = status.Y + 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
-            | 0x9Auy -> { status with StackPointer = new Word(StackPageReference, status.X) }   //TXS
-                | 0xBAuy -> { status with X = status.StackPointer.Lsb }                         //TSX
+            | 0x9Auy -> { (ac status 2 false) with StackPointer = new Word(StackPageReference, status.X) }   //TXS
+            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer.Lsb }                             //TSX
             | _ -> failwithf "'%s' is not a register manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Stack opcode status =
@@ -359,29 +368,20 @@
             | _ -> failwith "Not supported"
 
         member private this.Compare mode status value cycles =
-            let (address, pageCrossed) = ga mode status
-            let m = status.Memory.[address]
+            let (m, pageCrossed) = gv mode status
             { (ac status cycles pageCrossed) with Flags = { status.Flags with Zero = value = m; Carry = value >= m; Negavtive = value >= 0x80uy } }
 
-        member private this.Load status address =
-            let value = status.Memory.[address]
-            let flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy }
-            value, flags
-
         member private this.LDA mode status cycles =
-            let (address, pageCrossed) = ga mode status
-            let (value, flags) = this.Load status address
-            { (ac status cycles pageCrossed) with Accumulator = value }
+            let (value, pageCrossed) = gv mode status
+            { (ac status cycles pageCrossed) with Accumulator = value; Flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy } }
 
         member private this.LDX mode status  cycles =
-            let (address, pageCrossed) = ga mode status
-            let (value, flags) = this.Load status address
-            { (ac status cycles pageCrossed) with X = value }
+            let (value, pageCrossed) = gv mode status
+            { (ac status cycles pageCrossed) with X = value; Flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy } }
 
         member private this.LDY mode status cycles =
-            let (address, pageCrossed) = ga mode status
-            let (value, flags) = this.Load status address
-            { (ac status cycles pageCrossed) with Y = value }
+            let (value, pageCrossed) = gv mode status
+            { (ac status cycles pageCrossed) with Y = value; Flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy } }
 
         member private this.Store mode status value cycles =
             let (address, _) = ga mode status //For these instructions we don't care if page were crossed of not
