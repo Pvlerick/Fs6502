@@ -7,6 +7,7 @@
     open System
     open ByteExtension
 
+
     type Word =
         struct
             val Msb: byte
@@ -52,7 +53,7 @@
             BreakCommand: bool          // B
             _Reserved: bool             // -
             Overflow: bool              // V
-            Negavtive: bool             // N
+            Negative: bool             // N
         }
 
 
@@ -62,6 +63,7 @@
         member this.Item
             with get (address: Word) = memory.[address.Msb.ToInt32, address.Lsb.ToInt32]
             and set (address: Word) value = memory.[address.Msb.ToInt32, address.Lsb.ToInt32] <- value
+
 
     type Status =
         {
@@ -74,6 +76,7 @@
             Memory: Memory
             Cycles: UInt64
         }
+
 
     type Cpu() =
         [<Literal>] 
@@ -136,7 +139,7 @@
                         BreakCommand = true
                         _Reserved = true
                         Overflow = false
-                        Negavtive = false
+                        Negative = false
                     }
                 Memory = new Memory()
                 Cycles = 0UL
@@ -170,14 +173,14 @@
                     | 0x48uy | 0x68uy | 0x08uy | 0x28uy ->
                         this.Stack opcode (apc this.Status 1)
 //                    //ADC - Add with Carry
-//                    | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2)
-//                    | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2)
-//                    | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2)
-//                    | 0x6Duy -> this.ADC (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3)
-//                    | 0x7Duy -> this.ADC (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3)
-//                    | 0x79uy -> this.ADC (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3)
-//                    | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2)
-//                    | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2)
+                    | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0x6Duy -> this.ADC (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0x7Duy -> this.ADC (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0x79uy -> this.ADC (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
 //                    //AND - Bitwise AND with Accumulator
 //                    | 0x29uy -> this.AND (AddressingModes.Immediate(gba 1)) (apc this.Status 2)
                     //BRK - Force Interrupt
@@ -238,8 +241,8 @@
         member private this.Branch opcode offset status =
             let jump =
                 match opcode with
-                | 0x10uy -> not status.Flags.Negavtive  //BPL
-                | 0x30uy -> status.Flags.Negavtive      //BMI
+                | 0x10uy -> not status.Flags.Negative  //BPL
+                | 0x30uy -> status.Flags.Negative      //BMI
                 | 0x50uy -> not status.Flags.Overflow   //BVC
                 | 0x70uy -> status.Flags.Overflow       //BVS
                 | 0x90uy -> not status.Flags.Carry      //BCC
@@ -270,7 +273,7 @@
             | _ -> failwithf "'%s' is not a flag manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Registers opcode status =
-            let setFlags value flags = { flags with Zero = value = 0x00uy; Negavtive = value >= 0x80uy }
+            let setFlags value flags = { flags with Zero = value = 0x00uy; Negative = value >= 0x80uy }
 
             match opcode with
             | 0xAAuy -> { (ac status 2 false) with X = status.Accumulator }                                  //TAX
@@ -316,7 +319,7 @@
                 if status.Flags.BreakCommand then ps <- ps ||| (1uy <<< 4)
                 if status.Flags._Reserved then ps <- ps ||| (1uy <<< 5)
                 if status.Flags.Overflow then ps <- ps ||| (1uy <<< 6)
-                if status.Flags.Negavtive then ps <- ps ||| (1uy <<< 7)
+                if status.Flags.Negative then ps <- ps ||| (1uy <<< 7)
                 ac (push ps status) 3 false
             | 0x28uy ->                                                                                                   //PLP
                 let (b, newStatus) = pop status
@@ -330,22 +333,22 @@
                                 BreakCommand = (b &&& (1uy <<< 4) > 0uy);
                                 _Reserved = (b &&& (1uy <<< 5) > 0uy);
                                 Overflow = (b &&& (1uy <<< 6) > 0uy);
-                                Negavtive = (b &&& (1uy <<< 7) > 0uy);
+                                Negative = (b &&& (1uy <<< 7) > 0uy);
                             }
                 }) 4 false
             | _ -> failwithf "'%s' is not a stack manipulation opcode" (BitConverter.ToString [| opcode |])
 
-//        member private this.ADC mode status =
-//            let add value =
-//                if not(status.Flags.Decimal) then
-//                    let r = status.Accumulator + value
-//                    { status with Accumulator = r }
-//                else
-//                    //Do Something else
-//                    status
-//
-//            let (arg, pageCrossed) = gav mode status
-//            let result = add arg
+        member private this.ADC mode status cycles =
+            let (value, pageCrossed) = gv mode status
+
+            if not (status.Flags.Decimal) then
+                let result = status.Accumulator + value + (if status.Flags.Carry then 1uy else 0uy)
+                let carry = (result < status.Accumulator && result < value)
+                let overflow = if carry then status.Accumulator >= 0x80uy && value >= 0x80uy && result < 0x80uy else status.Accumulator < 0x80uy && value < 0x80uy && result >= 0x80uy
+                { (ac status cycles pageCrossed) with Accumulator = result; Flags = { status.Flags with Zero = result = 0uy; Carry = carry; Overflow = overflow } }
+            else
+                //Do Something else
+                status
 //
 //
 //        member private this.AND mode status =
@@ -369,19 +372,19 @@
 
         member private this.Compare mode status value cycles =
             let (m, pageCrossed) = gv mode status
-            { (ac status cycles pageCrossed) with Flags = { status.Flags with Zero = value = m; Carry = value >= m; Negavtive = value >= 0x80uy } }
+            { (ac status cycles pageCrossed) with Flags = { status.Flags with Zero = value = m; Carry = value >= m; Negative = value >= 0x80uy } }
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status
-            { (ac status cycles pageCrossed) with Accumulator = value; Flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy } }
+            { (ac status cycles pageCrossed) with Accumulator = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
         member private this.LDX mode status  cycles =
             let (value, pageCrossed) = gv mode status
-            { (ac status cycles pageCrossed) with X = value; Flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy } }
+            { (ac status cycles pageCrossed) with X = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
         member private this.LDY mode status cycles =
             let (value, pageCrossed) = gv mode status
-            { (ac status cycles pageCrossed) with Y = value; Flags = { status.Flags with Zero = value = 0uy; Negavtive = value >= 0x80uy } }
+            { (ac status cycles pageCrossed) with Y = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
         member private this.Store mode status value cycles =
             let (address, _) = ga mode status //For these instructions we don't care if page were crossed of not
