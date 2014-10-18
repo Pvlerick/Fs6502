@@ -172,7 +172,7 @@
                     //Stack manipulations
                     | 0x48uy | 0x68uy | 0x08uy | 0x28uy ->
                         this.Stack opcode (apc this.Status 1)
-//                    //ADC - Add with Carry
+                    //ADC - Add with Carry
                     | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
@@ -181,6 +181,15 @@
                     | 0x79uy -> this.ADC (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
                     | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //SBC - Substract with Carry
+                    | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0xF5uy -> this.SBC (ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0xEDuy -> this.SBC (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xFDuy -> this.SBC (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xF9uy -> this.SBC (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xE1uy -> this.SBC (IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0xF1uy -> this.SBC (IndirectY(gba 1)) (apc this.Status 2) 5
 //                    //AND - Bitwise AND with Accumulator
 //                    | 0x29uy -> this.AND (AddressingModes.Immediate(gba 1)) (apc this.Status 2)
                     //BRK - Force Interrupt
@@ -343,12 +352,37 @@
 
             if not (status.Flags.Decimal) then
                 let result = status.Accumulator + value + (if status.Flags.Carry then 1uy else 0uy)
-                let carry = (result < status.Accumulator && result < value)
-                let overflow = if carry then status.Accumulator >= 0x80uy && value >= 0x80uy && result < 0x80uy else status.Accumulator < 0x80uy && value < 0x80uy && result >= 0x80uy
-                { (ac status cycles pageCrossed) with Accumulator = result; Flags = { status.Flags with Zero = result = 0uy; Carry = carry; Overflow = overflow } }
+                let carry = result.ToInt32 < status.Accumulator.ToInt32 + value.ToInt32
+                { (ac status cycles pageCrossed) with
+                    Accumulator = result;
+                    Flags = { status.Flags with
+                                Zero = result = 0uy;
+                                Carry = carry;
+                                Overflow = if carry then status.Accumulator >= 0x80uy && value >= 0x80uy && result < 0x80uy else status.Accumulator < 0x80uy && value < 0x80uy && result >= 0x80uy;
+                                Negative = result >= 0x80uy
+                    } }
             else
                 //Do Something else
                 status
+
+        member private this.SBC mode status cycles =
+            let (value, pageCrossed) = gv mode status
+
+            if not (status.Flags.Decimal) then
+                let result = status.Accumulator - value - (if status.Flags.Carry then 0uy else 1uy)
+                let carry = result.ToInt32 < 0
+                { (ac status cycles pageCrossed) with
+                    Accumulator = result;
+                    Flags = { status.Flags with
+                                Zero = result = 0uy;
+                                Carry = carry;
+                                Overflow = if carry then status.Accumulator > result else status.Accumulator >= 0x80uy;
+                                Negative = result >= 0x80uy
+                    } }
+            else
+                //Do Something else
+                status
+
 //
 //
 //        member private this.AND mode status =
