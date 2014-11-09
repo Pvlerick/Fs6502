@@ -12,7 +12,7 @@ namespace Fs6502.Emulator.Test
     class CpuTest
     {
         [TestCase]
-        public void Addressing_ZeroPage()
+        public void _Addressing_ZeroPage()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -30,7 +30,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_ZeroPageX()
+        public void _Addressing_ZeroPageX()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -49,7 +49,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_ZeroPageX_Wrapping()
+        public void _Addressing_ZeroPageX_Wrapping()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -68,7 +68,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_ZeroPageY()
+        public void _Addressing_ZeroPageY()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -87,7 +87,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_Absolute()
+        public void _Addressing_Absolute()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -105,7 +105,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_AbsoluteX()
+        public void _Addressing_AbsoluteX()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -124,7 +124,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_AbsoluteX_PageCrossed()
+        public void _Addressing_AbsoluteX_PageCrossed()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -143,7 +143,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_AbsoluteY()
+        public void _Addressing_AbsoluteY()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -162,7 +162,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_AbsoluteY_PageCrossed()
+        public void _Addressing_AbsoluteY_PageCrossed()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -181,7 +181,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_IndirectX()
+        public void _Addressing_IndirectX()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -202,7 +202,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_IndirectX_Wrapping()
+        public void _Addressing_IndirectX_Wrapping()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -223,7 +223,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_IndirectY()
+        public void _Addressing_IndirectY()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -244,7 +244,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void Addressing_IndirectY_PageCrossed()
+        public void _Addressing_IndirectY_PageCrossed()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -322,75 +322,30 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void ADC()
+        public void AND()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$01",    //2 cycles
-                    "ADC #$02"  //2 cycles
+                    "LDA #$1A",
+                    "AND #$12"
                 });
 
             var cpu = new Cpu();
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x03, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.AreEqual(0x12, cpu.Status.Accumulator);
             Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.IsFalse(cpu.Status.Flags.Negative);
         }
 
         [TestCase]
-        public void ADC_WithCarry()
+        public void AND_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "SEC",      //2 cycles
-                    "LDA #$01", //2 cycles
-                    "ADC #$02"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x04, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void ADC_SetCarry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$FF",    //2 cycles
-                    "ADC #$02"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x01, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void ADC_SetCarryZero()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$FF",    //2 cycles
-                    "ADC #$01"  //2 cycles
+                    "LDA #$1A",
+                    "AND #$00"
                 });
 
             var cpu = new Cpu();
@@ -398,59 +353,53 @@ namespace Fs6502.Emulator.Test
             cpu.Execute(0, program.ToArray());
 
             Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
             Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void ADC_NoFlagChange()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SEC",      //2 cycles
-                    "LDA #$70", //2 cycles
-                    "SBC #$FF"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x71, cpu.Status.Accumulator);
             Assert.IsFalse(cpu.Status.Flags.Negative);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
         [TestCase]
-        public void ADC_SetNotCarryNotOverflow()
+        public void AND_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$01",
-                    "ADC #$01"
+                    "LDA #$DA",
+                    "AND #$97"
                 });
 
             var cpu = new Cpu();
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x02, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.AreEqual(0x92, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
         }
 
         [TestCase]
-        public void ADC_SetCarryNotOverflow()
+        public void EOR()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$01",
-                    "ADC #$FF"
+                    "LDA #$15",
+                    "EOR #$10"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x5, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void EOR_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$72",
+                    "EOR #$72"
                 });
 
             var cpu = new Cpu();
@@ -458,246 +407,53 @@ namespace Fs6502.Emulator.Test
             cpu.Execute(0, program.ToArray());
 
             Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-        }
-
-        [TestCase]
-        public void ADC_SetOverflowNotCarry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$7F",
-                    "ADC #$01"
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x80, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-        }
-
-        [TestCase]
-        public void ADC_SetCarryOverflow()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$80",
-                    "ADC #$FF"
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x7F, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-        }
-
-        [TestCase]
-        public void ADC_Decimal()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SED",      //2 cycles
-                    "LDA #$76", //2 cycles
-                    "ADC #$03"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x79, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Decimal);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void ADC_Negative()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$70",     //2 cycles
-                    "ADC #$64"      //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0xD4, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void ADC_Decimal_Negative()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SED",      //2 cycles
-                    "LDA #$85", //2 cycles
-                    "ADC #$03"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x88, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Decimal);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void ADC_Decimal_Carry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SED",      //2 cycles
-                    "LDA #$85", //2 cycles
-                    "ADC #$36"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x21, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Decimal);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void SBC()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$01",    //2 cycles
-                    "SBC #$FF"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x01, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void SBC_SetCarry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$03",    //2 cycles
-                    "SBC #$01"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x01, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void SBC_WithCarry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SEC",      //2 cycles
-                    "LDA #$05", //2 cycles
-                    "SBC #$02"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x03, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [TestCase]
-        public void SBC_SetCarryZero()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$03",    //2 cycles
-                    "SBC #$02"  //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
             Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.IsFalse(cpu.Status.Flags.Negative);
         }
 
         [TestCase]
-        public void SBC_SetNegative()
+        public void EOR_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$C4",
+                    "EOR #$40"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x84, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ORA()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$15",
+                    "ORA #$10"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x15, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ORA_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
                     "LDA #$00",
-                    "SBC #$01"
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0xFE, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
-        }
-
-        [TestCase]
-        public void SBC_SetCarryNotOverflow()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$01",
-                    "SBC #$FF"
+                    "ORA #$00"
                 });
 
             var cpu = new Cpu();
@@ -705,51 +461,30 @@ namespace Fs6502.Emulator.Test
             cpu.Execute(0, program.ToArray());
 
             Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-        }
-
-        [TestCase]
-        public void SBC_SetOverflowNotCarry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SEC",
-                    "LDA #$7F",
-                    "SBC #$FF"
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x80, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
-        }
-
-        [TestCase]
-        public void SBC_SetCarryOverflow()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$80",
-                    "SBC #$01"
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x7E, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Negative);
         }
 
+        [TestCase]
+        public void ORA_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$C4",
+                    "ORA #$40"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0xC4, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
         [TestCaseSource("TestData")]
-        public void Execute(CpuTestData programData)
+        public void _Execute(CpuTestData programData)
         {
             var cpu = new Cpu();
             cpu.Execute(programData.EntryPoint, programData.MachineCode);

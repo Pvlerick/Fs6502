@@ -53,7 +53,7 @@
             BreakCommand: bool          // B
             _Reserved: bool             // -
             Overflow: bool              // V
-            Negative: bool             // N
+            Negative: bool              // N
         }
 
 
@@ -147,7 +147,8 @@
             with get, set
 
         member this.Execute entryPoint (machineCode: byte[]) =
-            let gba (offset: int) = machineCode.[(this.Status.ProgramCounter.Substract (entryPoint - (Convert.ToUInt16 offset))).ToInt32]  //GetByteAhead
+            let gba (offset: int) = machineCode.[(this.Status.ProgramCounter.Substract (entryPoint - (Convert.ToUInt16 offset))).ToInt32] //GetByteAhead
+            let gwa (offset: int) = new Word(gba (offset + 1), gba offset) //GetWordAhead
             
             //let endingAddress = ((new Word(startingAddress)).Add Convert.ToUInt16(machineCode.Length)).ToUInt16
             let endPoint = ((new Word(entryPoint)).Add (Convert.ToUInt16 machineCode.Length)).ToUInt16
@@ -176,74 +177,99 @@
                     | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
-                    | 0x6Duy -> this.ADC (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0x7Duy -> this.ADC (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0x79uy -> this.ADC (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0x6Duy -> this.ADC (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0x7Duy -> this.ADC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0x79uy -> this.ADC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
                     //SBC - Substract with Carry
                     | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xF5uy -> this.SBC (ZeroPageX(gba 1)) (apc this.Status 2) 4
-                    | 0xEDuy -> this.SBC (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0xFDuy -> this.SBC (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0xF9uy -> this.SBC (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xEDuy -> this.SBC (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0xFDuy -> this.SBC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0xF9uy -> this.SBC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     | 0xE1uy -> this.SBC (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0xF1uy -> this.SBC (IndirectY(gba 1)) (apc this.Status 2) 5
-//                    //AND - Bitwise AND with Accumulator
-//                    | 0x29uy -> this.AND (AddressingModes.Immediate(gba 1)) (apc this.Status 2)
+                    //AND - Bitwise AND with Accumulator
+                    | 0x29uy -> this.AND (AddressingModes.Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0x25uy -> this.AND (AddressingModes.ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x35uy -> this.AND (AddressingModes.ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0x2Duy -> this.AND (AddressingModes.Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0x3Duy -> this.AND (AddressingModes.AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0x39uy -> this.AND (AddressingModes.AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0x21uy -> this.AND (AddressingModes.IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0x31uy -> this.AND (AddressingModes.IndirectY(gba 1)) (apc this.Status 2) 5
                     //BRK - Force Interrupt
                     | 0x00uy -> this.BRK Implied (apc this.Status 1) //Check if BRK advance the PC
                     //Comparisons - CMP, CPX, CPY
                     | 0xC9uy -> this.Compare (Immediate(gba 1)) (apc this.Status 2) this.Status.Accumulator 2
                     | 0xC5uy -> this.Compare (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0xD5uy -> this.Compare (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
-                    | 0xCDuy -> this.Compare (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 4
-                    | 0xDDuy -> this.Compare (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 4
-                    | 0xD9uy -> this.Compare (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 4
+                    | 0xCDuy -> this.Compare (Absolute(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
+                    | 0xDDuy -> this.Compare (AbsoluteX(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
+                    | 0xD9uy -> this.Compare (AbsoluteY(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
                     | 0xC1uy -> this.Compare (IndirectX(gba 1)) (apc this.Status 2) this.Status.Accumulator 6
                     | 0xD1uy -> this.Compare (IndirectY(gba 1)) (apc this.Status 2) this.Status.Accumulator 5
                     | 0xE0uy -> this.Compare (Immediate(gba 1)) (apc this.Status 2) this.Status.X 2
                     | 0xE4uy -> this.Compare (ZeroPage(gba 1)) (apc this.Status 2) this.Status.X 3
-                    | 0xECuy -> this.Compare (Absolute(new Word(gba 2, gba 1))) (apc this.Status 2) this.Status.X 4
+                    | 0xECuy -> this.Compare (Absolute(gwa 1)) (apc this.Status 2) this.Status.X 4
                     | 0xC0uy -> this.Compare (Immediate(gba 1)) (apc this.Status 2) this.Status.Y 2
                     | 0xC4uy -> this.Compare (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Y 3
-                    | 0xCCuy -> this.Compare (Absolute(new Word(gba 2, gba 1))) (apc this.Status 2) this.Status.Y 4
+                    | 0xCCuy -> this.Compare (Absolute(gwa 1)) (apc this.Status 2) this.Status.Y 4
+                    //EOR - Bitwise Exclusive OR with Accumulator
+                    | 0x49uy -> this.EOR (AddressingModes.Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0x45uy -> this.EOR (AddressingModes.ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x55uy -> this.EOR (AddressingModes.ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0x4Duy -> this.EOR (AddressingModes.Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0x5Duy -> this.EOR (AddressingModes.AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0x59uy -> this.EOR (AddressingModes.AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0x41uy -> this.EOR (AddressingModes.IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0x51uy -> this.EOR (AddressingModes.IndirectY(gba 1)) (apc this.Status 2) 5
                     //LDA - Load Accumulator
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA5uy -> this.LDA (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xB5uy -> this.LDA (ZeroPageX(gba 1)) (apc this.Status 2) 4
-                    | 0xADuy -> this.LDA (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0xBDuy -> this.LDA (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0xB9uy -> this.LDA (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xADuy -> this.LDA (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0xBDuy -> this.LDA (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0xB9uy -> this.LDA (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     | 0xA1uy -> this.LDA (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0xB1uy -> this.LDA (IndirectY(gba 1)) (apc this.Status 2) 5
                     //LDX - Load X Register
                     | 0xA2uy -> this.LDX (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA6uy -> this.LDX (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xB6uy -> this.LDX (ZeroPageY(gba 1)) (apc this.Status 2) 4
-                    | 0xAEuy -> this.LDX (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0xBEuy -> this.LDX (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xAEuy -> this.LDX (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0xBEuy -> this.LDX (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     //LDY - Load X Register
                     | 0xA0uy -> this.LDY (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA4uy -> this.LDY (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0xB4uy -> this.LDY (ZeroPageX(gba 1)) (apc this.Status 2) 4
-                    | 0xACuy -> this.LDY (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) 4
-                    | 0xBCuy -> this.LDY (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) 4
+                    | 0xACuy -> this.LDY (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0xBCuy -> this.LDY (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    //ORA - Bitwise Inclusive OR with Accumulator
+                    | 0x09uy -> this.ORA (AddressingModes.Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0x05uy -> this.ORA (AddressingModes.ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x15uy -> this.ORA (AddressingModes.ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0x0Duy -> this.ORA (AddressingModes.Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0x1Duy -> this.ORA (AddressingModes.AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0x19uy -> this.ORA (AddressingModes.AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0x01uy -> this.ORA (AddressingModes.IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0x11uy -> this.ORA (AddressingModes.IndirectY(gba 1)) (apc this.Status 2) 5
                     //Store Instructions - STA, STX, STY
                     | 0x85uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x95uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
-                    | 0x8Duy -> this.Store (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 4
-                    | 0x9Duy -> this.Store (AbsoluteX(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 5
-                    | 0x99uy -> this.Store (AbsoluteY(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 5
+                    | 0x8Duy -> this.Store (Absolute(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
+                    | 0x9Duy -> this.Store (AbsoluteX(gwa 1)) (apc this.Status 3) this.Status.Accumulator 5
+                    | 0x99uy -> this.Store (AbsoluteY(gwa 1)) (apc this.Status 3) this.Status.Accumulator 5
                     | 0x81uy -> this.Store (IndirectX(gba 1)) (apc this.Status 2) this.Status.Accumulator 6
                     | 0x91uy -> this.Store (IndirectY(gba 1)) (apc this.Status 2) this.Status.Accumulator 6
                     | 0x86uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x96uy -> this.Store (ZeroPageY(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
-                    | 0x8Euy -> this.Store (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 4
+                    | 0x8Euy -> this.Store (Absolute(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
                     | 0x84uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x94uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
-                    | 0x8Cuy -> this.Store (Absolute(new Word(gba 2, gba 1))) (apc this.Status 3) this.Status.Accumulator 4
+                    | 0x8Cuy -> this.Store (Absolute(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
                     //Not recognized...
                     | _ -> failwithf "Opcode '%s' not supported" (BitConverter.ToString [| opcode |])
 
@@ -347,50 +373,45 @@
                 }) 4 false
             | _ -> failwithf "'%s' is not a stack manipulation opcode" (BitConverter.ToString [| opcode |])
 
-        member private this.ADC mode status cycles =
+        member private this.ADC mode status cycles = status //TODO
+
+        member private this.SBC mode status cycles = status //TODO
+
+        member private this.AND mode status cycles =
             let (value, pageCrossed) = gv mode status
 
-            if not (status.Flags.Decimal) then
-                let result = status.Accumulator + value + (if status.Flags.Carry then 1uy else 0uy)
-                let carry = result.ToInt32 < status.Accumulator.ToInt32 + value.ToInt32
-                { (ac status cycles pageCrossed) with
-                    Accumulator = result;
-                    Flags = { status.Flags with
-                                Zero = result = 0uy;
-                                Carry = carry;
-                                Overflow = if carry then status.Accumulator >= 0x80uy && value >= 0x80uy && result < 0x80uy else status.Accumulator < 0x80uy && value < 0x80uy && result >= 0x80uy;
-                                Negative = result >= 0x80uy
-                    } }
-            else
-                //Do Something else
-                status
+            let result = status.Accumulator &&& value
 
-        member private this.SBC mode status cycles =
+            { (ac status cycles pageCrossed) with
+                Accumulator = result;
+                Flags = { status.Flags with
+                            Zero = result = 0uy;
+                            Negative = result >= 0x80uy
+                } }
+
+        member private this.EOR mode status cycles =
             let (value, pageCrossed) = gv mode status
 
-            if not (status.Flags.Decimal) then
-                let result = status.Accumulator - value - (if status.Flags.Carry then 0uy else 1uy)
-                let carry = result.ToInt32 < 0
-                { (ac status cycles pageCrossed) with
-                    Accumulator = result;
-                    Flags = { status.Flags with
-                                Zero = result = 0uy;
-                                Carry = carry;
-                                Overflow = if carry then status.Accumulator > result else status.Accumulator >= 0x80uy;
-                                Negative = result >= 0x80uy
-                    } }
-            else
-                //Do Something else
-                status
+            let result = status.Accumulator ^^^ value
 
-//
-//
-//        member private this.AND mode status =
-//            match mode with
-//            | AddressingModes.Immediate(arg) ->
-//                //TODO Implement operation
-//                ac status 2
-//            | _ -> failwith "Not supported"
+            { (ac status cycles pageCrossed) with
+                Accumulator = result;
+                Flags = { status.Flags with
+                            Zero = result = 0uy;
+                            Negative = result >= 0x80uy
+                } }
+
+        member private this.ORA mode status cycles =
+            let (value, pageCrossed) = gv mode status
+
+            let result = status.Accumulator ||| value
+
+            { (ac status cycles pageCrossed) with
+                Accumulator = result;
+                Flags = { status.Flags with
+                            Zero = result = 0uy;
+                            Negative = result >= 0x80uy
+                } }
 
         member private this.BRK mode status =
             match mode with
