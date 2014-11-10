@@ -483,6 +483,139 @@ namespace Fs6502.Emulator.Test
             Assert.IsTrue(cpu.Status.Flags.Negative);
         }
 
+        [TestCase]
+        public void ASL()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$3C",
+                    "ASL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x78, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ASL_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$80",
+                    "ASL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x00, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ASL_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$F0",
+                    "ASL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0xE0, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ASL_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$5D",
+                    "ASL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0xBA, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void LSR()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$5C",
+                    "LSR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x2E, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void LSR_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$01",
+                    "LSR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x00, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void LSR_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$15",
+                    "LSR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x0A, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {
@@ -505,7 +638,6 @@ namespace Fs6502.Emulator.Test
                 this.Assertion = assertion;
             }
         }
-
 
         protected static CpuTestData[] TestData =
         {
