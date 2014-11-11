@@ -162,16 +162,16 @@
                 //Change in the cpu's status is atomic and no transitional state should be externally observable
                 this.Status <-
                     match opcode with
-                    //Branches - BPL, BMI, BVC, BVC, BCC, BCS, BNE, BEQ
+                    //Branches - BPL, BMI, BVC, BVS, BCC, BCS, BNE, BEQ
                     | 0x10uy | 0x30uy | 0x50uy | 0x70uy | 0x90uy | 0xB0uy | 0xD0uy | 0xF0uy ->
                         this.Branch opcode (gba 1) (apc this.Status 2)
-                    //Flags manipulations
+                    //Flags manipulations - CLC, SEC, CLI, SEI, CLV, CLD, SED
                     | 0x18uy | 0x38uy | 0x58uy | 0x78uy | 0xB8uy | 0xD8uy | 0xF8uy ->
                         this.Flags opcode (apc this.Status 1)
-                    //Registers manipulations
+                    //Registers manipulations - TAX, TXA, DEX, INX, TAY, TYA, DEY, INY, TXS, TSX
                     | 0xAAuy | 0x8Auy | 0xCAuy | 0xE8uy | 0xA8uy | 0x98uy | 0x88uy | 0xC8uy | 0x9Auy | 0xBAuy ->
                         this.Registers opcode (apc this.Status 1)
-                    //Stack manipulations
+                    //Stack manipulations - PHA, PLA, PHP, PLP
                     | 0x48uy | 0x68uy | 0x08uy | 0x28uy ->
                         this.Stack opcode (apc this.Status 1)
 //                    //ADC - Add with Carry
@@ -349,7 +349,7 @@
             | 0x88uy ->                                                                                      //DEY
                 let newY = status.Y - 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
-            | 0xC8uy ->                                                                                      //IN
+            | 0xC8uy ->                                                                                      //INY
                 let newY = status.Y + 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
             | 0x9Auy -> { (ac status 2 false) with StackPointer = new Word(StackPageReference, status.X) }   //TXS

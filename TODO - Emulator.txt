@@ -1,0 +1,58 @@
+Opcode status:
+
+ADC
+AND - OK
+ASL - Ok
+BCC - Ok
+BCS - Ok
+BEQ - Ok
+BIT
+BMI - Ok
+BNE - Ok
+BPL - Ok
+BRK - Ok
+BVC - Ok
+BVS - Ok
+CLC - Ok
+CLD - Ok
+CLI - Ok
+CLV - Ok
+CMP - Ok
+CPX - Ok
+CPY - Ok
+DEC
+DEX - Ok
+DEY - Ok
+EOR - Ok
+INC
+INX - Ok
+INY - Ok
+JMP
+JSR
+LDA - Ok
+LDX - Ok
+LDY - Ok
+LSR - Ok
+NOP
+ORA - Ok
+PHA - Ok
+PHP - Ok
+PLA - Ok
+PLP - Ok
+ROL - Ok
+ROR - Ok
+RTI
+RTS
+SBC
+SEC - Ok
+SED - Ok
+SEI - Ok
+STA - Ok
+STX - Ok
+STY - Ok
+TAX - Ok
+TAY - Ok
+TSX - Ok
+TXA - Ok
+TXS - Ok
+TYA - Ok
