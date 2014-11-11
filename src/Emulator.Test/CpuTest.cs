@@ -616,6 +616,30 @@ namespace Fs6502.Emulator.Test
             Assert.IsFalse(cpu.Status.Flags.Negative);
         }
 
+        [TestCase]
+        public void PHP_PLP()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SEC",
+                    "SEI",
+                    "SED",
+                    "PHP",
+                    "CLC",
+                    "CLI",
+                    "CLD",
+                    "PLP",
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Interrupt);
+            Assert.IsTrue(cpu.Status.Flags.Decimal);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {
