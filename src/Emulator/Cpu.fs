@@ -269,6 +269,18 @@
                     | 0x19uy -> this.ORA (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     | 0x01uy -> this.ORA (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0x11uy -> this.ORA (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //ROL - Rotate Left
+                    | 0x2Auy -> this.ROL Implied (apc this.Status 2) 2
+                    | 0x26uy -> this.ROL (ZeroPage(gba 1)) (apc this.Status 2) 5
+                    | 0x36uy -> this.ROL (ZeroPageX(gba 1)) (apc this.Status 2) 6
+                    | 0x2Euy -> this.ROL (Absolute(gwa 1)) (apc this.Status 2) 6
+                    | 0x3Euy -> this.ROL (AbsoluteX(gwa 1)) (apc this.Status 2) 7
+                    //ROR - Rotate Right
+                    | 0x6Auy -> this.ROR Implied (apc this.Status 2) 2
+                    | 0x66uy -> this.ROR (ZeroPage(gba 1)) (apc this.Status 2) 5
+                    | 0x76uy -> this.ROR (ZeroPageX(gba 1)) (apc this.Status 2) 6
+                    | 0x6Euy -> this.ROR (Absolute(gwa 1)) (apc this.Status 2) 6
+                    | 0x7Euy -> this.ROR (AbsoluteX(gwa 1)) (apc this.Status 2) 7
                     //Store Instructions - STA, STX, STY
                     | 0x85uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x95uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
@@ -451,11 +463,47 @@
 
             let flags = { status.Flags with
                             Zero = result = 0uy;
-                            Carry = (value &&& 0x01uy) = 0x01uy
+                            Carry = (value &&& 1uy) = 1uy
                             Negative = result >= 0x80uy } //Rhetorical test as it cannot happen
 
             match mode with
             | Implied -> 
+                { (ac status cycles false) with Accumulator = result; Flags = flags }
+            | _ ->
+                let (address, _) = ga mode status
+                status.Memory.[address] <- result
+                { (ac status cycles false) with Flags = flags }
+
+        member private this.ROL mode status cycles =
+            let (value, _) = gv mode status
+
+            let result = (value <<< 1) ||| (if status.Flags.Carry then 1uy else 0uy)
+            
+            let flags = { status.Flags with
+                            Zero = result = 0uy;
+                            Carry = (value &&& 0x80uy) = 0x80uy
+                            Negative = result >= 0x80uy }
+
+            match mode with
+            | Implied ->
+                { (ac status cycles false) with Accumulator = result; Flags = flags }
+            | _ ->
+                let (address, _) = ga mode status
+                status.Memory.[address] <- result
+                { (ac status cycles false) with Flags = flags }
+
+        member private this.ROR mode status cycles =
+            let (value, _) = gv mode status
+
+            let result = (value >>> 1) ||| (if status.Flags.Carry then 0x80uy else 0uy)
+            
+            let flags = { status.Flags with
+                            Zero = result = 0uy;
+                            Carry = (value &&& 1uy) = 1uy
+                            Negative = result >= 0x80uy }
+
+            match mode with
+            | Implied ->
                 { (ac status cycles false) with Accumulator = result; Flags = flags }
             | _ ->
                 let (address, _) = ga mode status

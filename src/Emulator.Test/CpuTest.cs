@@ -617,6 +617,200 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
+        public void ROL_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$80",
+                    "ROL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x00, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROL_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$F0",
+                    "ROL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0xE0, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROL_WithCarry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$4B",
+                    "SEC",
+                    "ROL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x97, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROL_WithCarry_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$B4",
+                    "SEC",
+                    "ROL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x69, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROL_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$5D",
+                    "ROL"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0xBA, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROR()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$5C",
+                    "ROR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x2E, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROR_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$01",
+                    "ROR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x00, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROR_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$15",
+                    "ROR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x0A, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROR_WithCarry_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$2C",
+                    "SEC",
+                    "ROR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x96, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ROR_WithCarry_Carry_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$2D",
+                    "SEC",
+                    "ROR"
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x96, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
         public void PHP_PLP()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
