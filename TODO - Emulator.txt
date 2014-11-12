@@ -6,7 +6,7 @@ ASL - Ok
 BCC - Ok
 BCS - Ok
 BEQ - Ok
-BIT
+BIT - Ok
 BMI - Ok
 BNE - Ok
 BPL - Ok

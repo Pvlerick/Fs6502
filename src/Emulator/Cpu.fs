@@ -207,6 +207,9 @@
                     | 0x16uy -> this.ASL (AddressingModes.ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0x0Euy -> this.ASL (AddressingModes.Absolute(gwa 1)) (apc this.Status 3) 6
                     | 0x1Euy -> this.ASL (AddressingModes.AbsoluteX(gwa 1)) (apc this.Status 3) 7
+                    //BIT - test BITs
+                    | 0x24uy -> this.BIT (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x2Cuy -> this.BIT (Absolute(gwa 1)) (apc this.Status 3) 4
                     //BRK - Force Interrupt
                     | 0x00uy -> this.BRK Implied (apc this.Status 1) //TODO Check if BRK advance the PC
                     //Comparisons - CMP, CPX, CPY
@@ -509,6 +512,18 @@
                 let (address, _) = ga mode status
                 status.Memory.[address] <- result
                 { (ac status cycles false) with Flags = flags }
+
+        member private this.BIT mode status cycles =
+            let (value, _) = gv mode status
+
+            let result = value &&& status.Accumulator
+
+            let flags = { status.Flags with
+                            Zero = result = 0uy;
+                            Overflow = (value &&& 0x40uy) = 0x40uy;
+                            Negative =  (value &&& 0x80uy) = 0x80uy }
+
+            { (ac status cycles false) with Flags = flags }
 
         member private this.BRK mode status =
             match mode with

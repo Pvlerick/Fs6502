@@ -834,6 +834,82 @@ namespace Fs6502.Emulator.Test
             Assert.IsTrue(cpu.Status.Flags.Decimal);
         }
 
+        [TestCase]
+        public void BIT()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$2F",
+                    "BIT $87"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x87)] = 0x2F;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void BIT_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$2B",
+                    "BIT $2F"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)] = 0x14;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void BIT_Overflow()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$05",
+                    "BIT $2F"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)] = 0x45; //0100 0101 - bit 6 is set
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Overflow);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void BIT_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$25",
+                    "BIT $2F"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)] = 0xA5; //1010 0101 - bit 7 is set
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {
