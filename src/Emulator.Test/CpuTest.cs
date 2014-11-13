@@ -910,6 +910,114 @@ namespace Fs6502.Emulator.Test
             Assert.IsTrue(cpu.Status.Flags.Negative);
         }
 
+        [TestCase]
+        public void DEC()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "DEC $2F"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)] = 0x25;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x24, cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)]);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void DEC_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "DEC $A2"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0xA2)] = 0x01;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x00, cpu.Status.Memory[new Emulator.Word(0x00, 0xA2)]);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void DEC_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "DEC $5B"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x5B)] = 0xA0;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x9F, cpu.Status.Memory[new Emulator.Word(0x00, 0x5B)]);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void INC()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "INC $2A48"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x2A, 0x48)] = 0x56;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x57, cpu.Status.Memory[new Emulator.Word(0x2A, 0x48)]);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void INC_Zero()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "INC $4E"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0x4E)] = 0xFF;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x00, cpu.Status.Memory[new Emulator.Word(0x00, 0x4E)]);
+            Assert.IsTrue(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+        
+        [TestCase]
+        public void INC_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "INC $F2"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Emulator.Word(0x00, 0xF2)] = 0x81;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x82, cpu.Status.Memory[new Emulator.Word(0x00, 0xF2)]);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {

@@ -227,6 +227,11 @@
                     | 0xC0uy -> this.Compare (Immediate(gba 1)) (apc this.Status 2) this.Status.Y 2
                     | 0xC4uy -> this.Compare (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Y 3
                     | 0xCCuy -> this.Compare (Absolute(gwa 1)) (apc this.Status 2) this.Status.Y 4
+                    //DEC - Decrement Memory
+                    | 0xC6uy -> this.DEC (ZeroPage(gba 1)) (apc this.Status 2) 5
+                    | 0xD6uy -> this.DEC (ZeroPageX(gba 1)) (apc this.Status 2) 6
+                    | 0xCEuy -> this.DEC (Absolute(gwa 1)) (apc this.Status 3) 6
+                    | 0xDEuy -> this.DEC (AbsoluteX(gwa 1)) (apc this.Status 3) 7
                     //EOR - Bitwise Exclusive OR with Accumulator
                     | 0x49uy -> this.EOR (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x45uy -> this.EOR (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -236,6 +241,11 @@
                     | 0x59uy -> this.EOR (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     | 0x41uy -> this.EOR (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0x51uy -> this.EOR (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //INC - Increment Memory
+                    | 0xE6uy -> this.INC (ZeroPage(gba 1)) (apc this.Status 2) 5
+                    | 0xF6uy -> this.INC (ZeroPageX(gba 1)) (apc this.Status 2) 6
+                    | 0xEEuy -> this.INC (Absolute(gwa 1)) (apc this.Status 3) 6
+                    | 0xFEuy -> this.INC (AbsoluteX(gwa 1)) (apc this.Status 3) 7
                     //LDA - Load Accumulator
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA5uy -> this.LDA (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -539,7 +549,35 @@
 
         member private this.Compare mode status value cycles =
             let (m, pageCrossed) = gv mode status
-            { (ac status cycles pageCrossed) with Flags = { status.Flags with Zero = value = m; Carry = value >= m; Negative = value >= 0x80uy } }
+            { (ac status cycles pageCrossed) with
+                Flags = { status.Flags with
+                                Zero = value = m;
+                                Carry = value >= m;
+                                Negative = value >= 0x80uy } }
+
+        member private this.DEC mode status cycles =
+            let (value, _) = gv mode status
+            let (address, _) = ga mode status
+
+            let result = value - 1uy
+
+            status.Memory.[address] <- result
+            { (ac status cycles false) with
+                Flags = { status.Flags with
+                                    Zero = result = 0uy;
+                                    Negative = result >= 0x80uy } }
+
+        member private this.INC mode status cycles =
+            let (value, _) = gv mode status
+            let (address, _) = ga mode status
+
+            let result = value + 1uy
+
+            status.Memory.[address] <- result
+            { (ac status cycles false) with
+                Flags = { status.Flags with
+                                    Zero = result = 0uy;
+                                    Negative = result >= 0x80uy } }
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status

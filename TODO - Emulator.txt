@@ -20,11 +20,11 @@ CLV - Ok
 CMP - Ok
 CPX - Ok
 CPY - Ok
-DEC
+DEC - Ok
 DEX - Ok
 DEY - Ok
 EOR - Ok
-INC
+INC - Ok
 INX - Ok
 INY - Ok
 JMP
