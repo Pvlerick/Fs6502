@@ -26,7 +26,7 @@
         member this.Add (i: UInt16) = new Word(this.ToUInt16 + i)
         member this.Substract (i: UInt16) = new Word(this.ToUInt16 - i)
 
-        member this.ToString = BitConverter.ToString([| this.Msb; this.Lsb |]).Replace("-", "")
+        override this.ToString() = BitConverter.ToString([| this.Msb; this.Lsb |]).Replace("-", "")
 
 
     type AddressingModes =
@@ -246,6 +246,9 @@
                     | 0xF6uy -> this.INC (ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0xEEuy -> this.INC (Absolute(gwa 1)) (apc this.Status 3) 6
                     | 0xFEuy -> this.INC (AbsoluteX(gwa 1)) (apc this.Status 3) 7
+                    //JMP - Jump
+                    | 0x4Cuy -> this.JMP (Absolute(gwa 1)) (apc this.Status 3) 3
+                    | 0x6Cuy -> this.JMP (Indirect(gwa 1)) (apc this.Status 3) 5
                     //LDA - Load Accumulator
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA5uy -> this.LDA (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -578,6 +581,14 @@
                 Flags = { status.Flags with
                                     Zero = result = 0uy;
                                     Negative = result >= 0x80uy } }
+        
+        member private this.JMP mode status cycles =
+            let (address, pageCrossed) = ga mode status
+
+            //TODO Indirect JMP cannot be on page boundaries, this is a 6502 bug
+            //if (mode(_) = Indirect) && pageCrossed then failwith "JMP does not support"
+
+            { (ac status cycles false) with ProgramCounter = address }
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status

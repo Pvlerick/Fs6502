@@ -27,7 +27,7 @@ EOR - Ok
 INC - Ok
 INX - Ok
 INY - Ok
-JMP
+JMP - Ok
 JSR
 LDA - Ok
 LDX - Ok

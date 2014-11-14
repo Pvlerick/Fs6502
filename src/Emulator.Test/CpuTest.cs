@@ -1018,6 +1018,25 @@ namespace Fs6502.Emulator.Test
             Assert.IsTrue(cpu.Status.Flags.Negative);
         }
 
+        [TestCase]
+        public void JMP()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$01",     //025D, 605us
+                    "JMP $0266",    //025F, 607us
+                    "LDA #$02",     //0262, 610us, jumped over
+                    "LDA #$03",     //0264, 612us, jumped over
+                    "LDA #$2F"      //0266, 614us
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(605, program.ToArray());
+
+            Assert.AreEqual("0268", cpu.Status.ProgramCounter.ToString());
+            Assert.AreEqual(0x2F, cpu.Status.Accumulator);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {
