@@ -1023,6 +1023,20 @@ namespace Fs6502.Emulator.Test
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
+                    "JMP $DE05"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual("DE05", cpu.Status.ProgramCounter.ToString());
+        }
+
+        [TestCase]
+        public void JMP_Execute()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
                     "LDA #$01",     //025D, 605us
                     "LDX #$05",     //025F, 607us
                     "LDY #$06",     //0261, 609us
@@ -1039,6 +1053,23 @@ namespace Fs6502.Emulator.Test
             Assert.AreEqual(0x2F, cpu.Status.Accumulator);
             Assert.AreEqual(0x05, cpu.Status.X);
             Assert.AreEqual(0x06, cpu.Status.Y);
+        }
+
+        [TestCase]
+        public void JSR()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "JSR $462B"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(17724, program.ToArray()); //Starting address: 453C, 177245us
+
+            Assert.AreEqual("462B", cpu.Status.ProgramCounter.ToString());
+            Assert.AreEqual(0xFD, cpu.Status.StackPointer);
+            Assert.AreEqual(0x45, cpu.Status.Memory[new Emulator.Word(0x01, 0xFF)]); //Return point is 453C + 3 - 1 = 453E
+            Assert.AreEqual(0x3E, cpu.Status.Memory[new Emulator.Word(0x01, 0xFE)]);
         }
 
         [TestCaseSource("TestData")]

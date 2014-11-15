@@ -70,7 +70,7 @@
             Accumulator: byte
             X: byte
             Y: byte
-            StackPointer: Word
+            StackPointer: byte
             ProgramCounter: Word
             Flags: Flags
             Memory: Memory
@@ -124,13 +124,22 @@
                 let (address, pageCrossed) = ga mode status
                 status.Memory.[address], pageCrossed
 
+        //Stack operations
+        let push b status =
+            status.Memory.[new Word(StackPageReference, status.StackPointer)] <- b
+            { status with StackPointer = status.StackPointer - 1uy }
+        let pop status =
+            let newSP = status.StackPointer + 1uy
+            let b = status.Memory.[new Word(StackPageReference, newSP)]
+            (b, { status with StackPointer = newSP })
+
         member val public Status =
             {
                 Accumulator = 0uy
                 X = 0uy
                 Y = 0uy
                 ProgramCounter = new Word(0us);
-                StackPointer = new Word(StartingStackPointer, 0uy)
+                StackPointer = StartingStackPointer
                 Flags =
                     {
                         Carry = false
@@ -148,6 +157,7 @@
             with get, set
 
         member this.Execute entryPoint (machineCode: byte[]) =
+            //Read bytes/word ahead in the machine code
             let gba (offset: int) = machineCode.[(this.Status.ProgramCounter.Substract (entryPoint - (Convert.ToUInt16 offset))).ToInt32] //GetByteAhead
             let gwa (offset: int) = new Word(gba (offset + 1), gba offset) //GetWordAhead
             
@@ -249,6 +259,8 @@
                     //JMP - Jump
                     | 0x4Cuy -> this.JMP (Absolute(gwa 1)) (apc this.Status 3) 3
                     | 0x6Cuy -> this.JMP (Indirect(gwa 1)) (apc this.Status 3) 5
+                    //JSR - Jump to Subrouting
+                    | 0x20uy -> this.JSR (Absolute(gwa 1)) (apc this.Status 3) 6
                     //LDA - Load Accumulator
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0xA5uy -> this.LDA (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -368,19 +380,11 @@
             | 0xC8uy ->                                                                                      //INY
                 let newY = status.Y + 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
-            | 0x9Auy -> { (ac status 2 false) with StackPointer = new Word(StackPageReference, status.X) }   //TXS
-            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer.Lsb }                             //TSX
+            | 0x9Auy -> { (ac status 2 false) with StackPointer = status.X }                                 //TXS
+            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer }                                //TSX
             | _ -> failwithf "'%s' is not a register manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Stack opcode status =
-            let push b status =
-                status.Memory.[status.StackPointer] <- b
-                { status with StackPointer = status.StackPointer.Substract 1uy }
-            let pop status =
-                let newSP = status.StackPointer.Add 1uy
-                let b = status.Memory.[newSP]
-                (b, { status with StackPointer = newSP })
-
             match opcode with
             | 0x48uy -> push status.Accumulator (ac status 3 false)                                                       //PHA
             | 0x68uy ->                                                                                                   //PLA
@@ -589,6 +593,16 @@
             //if (mode(_) = Indirect) && pageCrossed then failwith "JMP does not support"
 
             { (ac status cycles false) with ProgramCounter = address }
+
+        member private this.JSR mode status cycles =
+            let (address, _) = ga mode status
+
+            let returnPC = status.ProgramCounter.Substract 1uy
+
+            let newStatus = push returnPC.Lsb (push returnPC.Msb status)
+
+            { (ac newStatus cycles false) with ProgramCounter = address }
+
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status
