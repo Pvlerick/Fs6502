@@ -1024,17 +1024,21 @@ namespace Fs6502.Emulator.Test
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
                     "LDA #$01",     //025D, 605us
-                    "JMP $0266",    //025F, 607us
-                    "LDA #$02",     //0262, 610us, jumped over
-                    "LDA #$03",     //0264, 612us, jumped over
-                    "LDA #$2F"      //0266, 614us
+                    "LDX #$05",     //025F, 607us
+                    "LDY #$06",     //0261, 609us
+                    "JMP $026A",    //0263, 611us
+                    "LDX #$2F",     //0266, 614us, jumped over
+                    "LDY #$3B",     //0268, 616us, jumped over
+                    "LDA #$2F"      //026A, 618us
                 });
 
             var cpu = new Cpu();
             cpu.Execute(605, program.ToArray());
 
-            Assert.AreEqual("0268", cpu.Status.ProgramCounter.ToString());
+            Assert.AreEqual("026C", cpu.Status.ProgramCounter.ToString());
             Assert.AreEqual(0x2F, cpu.Status.Accumulator);
+            Assert.AreEqual(0x05, cpu.Status.X);
+            Assert.AreEqual(0x06, cpu.Status.Y);
         }
 
         [TestCaseSource("TestData")]
