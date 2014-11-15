@@ -28,7 +28,7 @@ INC - Ok
 INX - Ok
 INY - Ok
 JMP - Ok
-JSR
+JSR - Ok
 LDA - Ok
 LDX - Ok
 LDY - Ok
