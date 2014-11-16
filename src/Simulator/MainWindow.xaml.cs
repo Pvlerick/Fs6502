@@ -1,8 +1,11 @@
-﻿using System;
+﻿using Fs6502.Assembler;
+using Fs6502.Emulator;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,19 +28,67 @@ namespace Simulator
         {
             InitializeComponent();
 
-            var buffer = Array.CreateInstance(typeof(byte), 32 * 32) as byte[];
-            buffer[0] = 0xA1;
-            buffer[1] = 0xA2;
-            buffer[2] = 0x03;
-            buffer[3] = 0xD4;
-            buffer[4] = 0xD5;
-            buffer[5] = 0x06;
-            buffer[32] = 0x10;
-            buffer[33] = 0x11;
-            buffer[1000] = 0x07;
-            buffer[1023] = 0x08;
+            this.Assembler = new Assembler();
+            this.Cpu = new Cpu();
 
-            this.DrawDisplay(buffer);
+            this.CodeLines.Text = @"  LDX #$00
+  LDY #$00
+firstloop:
+  TXA
+  STA $0200,Y
+  PHA
+  INX
+  INY
+  CPY #$10
+  BNE firstloop ;loop until Y is $10
+secondloop:
+  PLA
+  STA $0200,Y
+  INY
+  CPY #$20      ;loop until Y is $20
+  BNE secondloop";
+        }
+
+        private Assembler Assembler { get; set; }
+        private Cpu Cpu { get; set; }
+
+        private void Run(object sender, RoutedEventArgs e)
+        {
+            this.RunButton.IsEnabled = false;
+
+            var machineCode = this.Assembler.Assemble(this.CodeLines.Text.Split('\n'));
+            this.Cpu.Execute(1536, machineCode.ToArray());
+
+            Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.RefreshDisplay();
+                        this.RefreshCpuStatusDisplay();
+                    });
+                    Thread.Sleep(250);
+                }
+            });
+
+            this.RunButton.IsEnabled = true;
+        }
+
+        private void RefreshDisplay()
+        {
+            //This simulator uses the memory locations $0200 to $05ff, similat to https://github.com/skilldrick/6502js
+            var buffer = this.GetMemorySlice(new Word(512), 1024);
+
+            this.DrawDisplay(buffer.ToArray());
+        }
+
+        private IEnumerable<byte> GetMemorySlice(Word startAddress, int size)
+        {
+            for (ushort i = 0; i < size; i++)
+            {
+                yield return this.Cpu.Status.Memory[startAddress.Add(i)];
+            }
         }
 
         const int PixelMultiplier = 5;
@@ -67,6 +118,15 @@ namespace Simulator
             var stride = ((DisplayBorderSize * 8 + 7) & ~7) / 8;
 
             this.display.Source = BitmapSource.Create(DisplayBorderSize, DisplayBorderSize, 96, 96, PixelFormats.Indexed8, BitmapPalettes.WebPalette, dis, stride);
+        }
+
+        private void RefreshCpuStatusDisplay()
+        {
+            this.StatusAccumulator.Text = this.Cpu.Status.Accumulator.ToString("X2");
+            this.StatusX.Text = this.Cpu.Status.X.ToString("X2");
+            this.StatusY.Text = this.Cpu.Status.Y.ToString("X2");
+            this.StatusStackPointer.Text = this.Cpu.Status.StackPointer.ToString("X2");
+            this.StatusProgramCounter.Text = this.Cpu.Status.ProgramCounter.ToString();
         }
     }
 }
