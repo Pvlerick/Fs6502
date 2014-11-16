@@ -1072,6 +1072,34 @@ namespace Fs6502.Emulator.Test
             Assert.AreEqual(0x3E, cpu.Status.Memory[new Emulator.Word(0x01, 0xFE)]);
         }
 
+        [TestCase]
+        public void RTS()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$20",     //0000
+                    "LDX #$30",     //0002
+                    "JSR $000D",    //0004
+                    "NOP",          //0007
+                    "JMP $0014",    //0008
+                    "LDX #$05",     //000B
+                    "LDY #$AA",     //000D
+                    "INX",          //000F
+                    "DEY",          //0010
+                    "RTS",          //0011
+                    "LDX #$12",     //0012
+                    "NOP"           //0014
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual("0015", cpu.Status.ProgramCounter.ToString());
+            Assert.AreEqual(0x20, cpu.Status.Accumulator);
+            Assert.AreEqual(0x31, cpu.Status.X);
+            Assert.AreEqual(0xA9, cpu.Status.Y);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {

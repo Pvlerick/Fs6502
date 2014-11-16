@@ -259,7 +259,7 @@
                     //JMP - Jump
                     | 0x4Cuy -> this.JMP (Absolute(gwa 1)) (apc this.Status 3) 3
                     | 0x6Cuy -> this.JMP (Indirect(gwa 1)) (apc this.Status 3) 5
-                    //JSR - Jump to Subrouting
+                    //JSR - Jump to Subroutine
                     | 0x20uy -> this.JSR (Absolute(gwa 1)) (apc this.Status 3) 6
                     //LDA - Load Accumulator
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
@@ -288,6 +288,8 @@
                     | 0x56uy -> this.LSR (ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0x4Euy -> this.LSR (Absolute(gwa 1)) (apc this.Status 3) 6
                     | 0x5Euy -> this.LSR (AbsoluteX(gwa 1)) (apc this.Status 3) 7
+                    //NOP No Operation
+                    | 0xEAuy -> ac (apc this.Status 1) 2 false
                     //ORA - Bitwise Inclusive OR with Accumulator
                     | 0x09uy -> this.ORA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x05uy -> this.ORA (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -309,6 +311,8 @@
                     | 0x76uy -> this.ROR (ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0x6Euy -> this.ROR (Absolute(gwa 1)) (apc this.Status 2) 6
                     | 0x7Euy -> this.ROR (AbsoluteX(gwa 1)) (apc this.Status 2) 7
+                    //RTS - Return from Subroutine
+                    | 0x60uy -> this.RTS Implied (apc this.Status 1) 6
                     //Store Instructions - STA, STX, STY
                     | 0x85uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x95uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
@@ -602,7 +606,14 @@
             let newStatus = push returnPC.Lsb (push returnPC.Msb status)
 
             { (ac newStatus cycles false) with ProgramCounter = address }
+        
+        member private this.RTS mode status cycles =
+            let (lsb, s1) = pop status
+            let (msb, s2) = pop s1
 
+            let address = new Word(msb, lsb)
+
+            { (ac s2 cycles false) with ProgramCounter = address }
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status

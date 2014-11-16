@@ -42,7 +42,7 @@ PLP - Ok
 ROL - Ok
 ROR - Ok
 RTI
-RTS
+RTS - Ok
 SBC
 SEC - Ok
 SED - Ok
