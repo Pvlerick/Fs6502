@@ -1,0 +1,19 @@
+﻿<Window x:Class="Simulator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="6502 Simulator" Height="350" Width="525">
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="358*"/>
+            <ColumnDefinition Width="180"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="1" Height="299" Width="170" Margin="10,0,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="160"/>
+                <RowDefinition Height="188*"/>
+            </Grid.RowDefinitions>
+            <Image x:Name="display" Height="160" Width="160"/>
+        </Grid>
+        <TextBox TextWrapping="Wrap" Text="LDA #$45" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+    </Grid>
+</Window>
