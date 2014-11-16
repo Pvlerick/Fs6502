@@ -33,7 +33,7 @@ LDA - Ok
 LDX - Ok
 LDY - Ok
 LSR - Ok
-NOP
+NOP - Ok
 ORA - Ok
 PHA - Ok
 PHP - Ok
