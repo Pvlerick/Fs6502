@@ -133,6 +133,31 @@
             let b = status.Memory.[new Word(StackPageReference, newSP)]
             (b, { status with StackPointer = newSP })
 
+        //Flags conversion to/from byte
+        let ftb flags=
+            let mutable ps = 0uy
+            if flags.Carry then ps <- ps ||| (1uy <<< 0)
+            if flags.Zero then ps <- ps ||| (1uy <<< 1)
+            if flags.Interrupt then ps <- ps ||| (1uy <<< 2)
+            if flags.Decimal then ps <- ps ||| (1uy <<< 3)
+            if flags.BreakCommand then ps <- ps ||| (1uy <<< 4)
+            if flags._Reserved then ps <- ps ||| (1uy <<< 5)
+            if flags.Overflow then ps <- ps ||| (1uy <<< 6)
+            if flags.Negative then ps <- ps ||| (1uy <<< 7)
+            ps
+
+        let btf b =
+            {
+                Carry = (b &&& (1uy <<< 0) > 0uy);
+                Zero = (b &&& (1uy <<< 1) > 0uy);
+                Interrupt = (b &&& (1uy <<< 2) > 0uy);
+                Decimal = (b &&& (1uy <<< 3) > 0uy);
+                BreakCommand = (b &&& (1uy <<< 4) > 0uy);
+                _Reserved = (b &&& (1uy <<< 5) > 0uy);
+                Overflow = (b &&& (1uy <<< 6) > 0uy);
+                Negative = (b &&& (1uy <<< 7) > 0uy);
+            }
+
         member val public Status =
             {
                 Accumulator = 0uy
@@ -311,6 +336,8 @@
                     | 0x76uy -> this.ROR (ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0x6Euy -> this.ROR (Absolute(gwa 1)) (apc this.Status 2) 6
                     | 0x7Euy -> this.ROR (AbsoluteX(gwa 1)) (apc this.Status 2) 7
+                    //RTI - Return from Interrupt
+                    | 0x40uy -> this.RTI Implied (apc this.Status 1) 6
                     //RTS - Return from Subroutine
                     | 0x60uy -> this.RTS Implied (apc this.Status 1) 6
                     //Store Instructions - STA, STX, STY
@@ -355,13 +382,13 @@
 
         member private this.Flags opcode status =
             match opcode with
-            | 0x18uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = false } }       //CLC
-            | 0x38uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = true } }        //SEC
-            | 0x58uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = false } }   //CLI
-            | 0x78uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = true } }    //SEI
-            | 0xB8uy -> { (ac status 2 false) with Flags = { status.Flags with Overflow = false } }    //CLV
-            | 0xD8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = false } }     //CLD
-            | 0xF8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = true } }      //SED
+            | 0x18uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = false } }             //CLC
+            | 0x38uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = true } }              //SEC
+            | 0x58uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = false } }         //CLI
+            | 0x78uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = true } }          //SEI
+            | 0xB8uy -> { (ac status 2 false) with Flags = { status.Flags with Overflow = false } }          //CLV
+            | 0xD8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = false } }           //CLD
+            | 0xF8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = true } }            //SED
             | _ -> failwithf "'%s' is not a flag manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Registers opcode status =
@@ -385,7 +412,7 @@
                 let newY = status.Y + 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
             | 0x9Auy -> { (ac status 2 false) with StackPointer = status.X }                                 //TXS
-            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer }                                //TSX
+            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer }                                 //TSX
             | _ -> failwithf "'%s' is not a register manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Stack opcode status =
@@ -395,31 +422,11 @@
                 let (b, newStatus) = pop status
                 { (ac newStatus 4 false) with Accumulator = b }
             | 0x08uy ->                                                                                                   //PHP
-                let mutable ps = 0uy
-                if status.Flags.Carry then ps <- ps ||| (1uy <<< 0)
-                if status.Flags.Zero then ps <- ps ||| (1uy <<< 1)
-                if status.Flags.Interrupt then ps <- ps ||| (1uy <<< 2)
-                if status.Flags.Decimal then ps <- ps ||| (1uy <<< 3)
-                if status.Flags.BreakCommand then ps <- ps ||| (1uy <<< 4)
-                if status.Flags._Reserved then ps <- ps ||| (1uy <<< 5)
-                if status.Flags.Overflow then ps <- ps ||| (1uy <<< 6)
-                if status.Flags.Negative then ps <- ps ||| (1uy <<< 7)
+                let ps = ftb status.Flags
                 ac (push ps status) 3 false
             | 0x28uy ->                                                                                                   //PLP
                 let (b, newStatus) = pop status
-                ac ({ newStatus with
-                        Flags =
-                            {
-                                Carry = (b &&& (1uy <<< 0) > 0uy);
-                                Zero = (b &&& (1uy <<< 1) > 0uy);
-                                Interrupt = (b &&& (1uy <<< 2) > 0uy);
-                                Decimal = (b &&& (1uy <<< 3) > 0uy);
-                                BreakCommand = (b &&& (1uy <<< 4) > 0uy);
-                                _Reserved = (b &&& (1uy <<< 5) > 0uy);
-                                Overflow = (b &&& (1uy <<< 6) > 0uy);
-                                Negative = (b &&& (1uy <<< 7) > 0uy);
-                            }
-                }) 4 false
+                ac ( { newStatus with Flags = btf b } ) 4 false
             | _ -> failwithf "'%s' is not a stack manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.ADC mode status cycles = status //TODO
@@ -608,12 +615,21 @@
             { (ac newStatus cycles false) with ProgramCounter = address }
         
         member private this.RTS mode status cycles =
-            let (lsb, s1) = pop status
+            let (lsb, s1) = pop status //Pop the PC
             let (msb, s2) = pop s1
-
             let address = new Word(msb, lsb)
 
             { (ac s2 cycles false) with ProgramCounter = address }
+
+        member private this.RTI mode status cycles =
+            let (ps, s1) = pop status //Pop the processor flags
+            let flags = btf ps
+
+            let (lsb, s2) = pop s1 //Pop the PC
+            let (msb, s3) = pop s2
+            let address = new Word(msb, lsb)
+
+            { (ac s3 cycles false) with ProgramCounter = address; Flags = flags }
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status

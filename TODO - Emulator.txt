@@ -41,7 +41,7 @@ PLA - Ok
 PLP - Ok
 ROL - Ok
 ROR - Ok
-RTI
+RTI - Ok
 RTS - Ok
 SBC
 SEC - Ok

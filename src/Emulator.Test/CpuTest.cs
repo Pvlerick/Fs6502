@@ -1100,6 +1100,34 @@ namespace Fs6502.Emulator.Test
             Assert.AreEqual(0xA9, cpu.Status.Y);
         }
 
+        [TestCase]
+        public void RTI()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$2B",
+                    "PHA",
+                    "LDA #$AA",
+                    "PHA",
+                    "SEC",
+                    "SEI",
+                    "SED",
+                    "PHP",
+                    "CLC", //Reset flags
+                    "CLI",
+                    "CLD",
+                    "RTI"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual("2BAA", cpu.Status.ProgramCounter.ToString());
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Interrupt);
+            Assert.IsTrue(cpu.Status.Flags.Decimal);
+        }
+
         [TestCaseSource("TestData")]
         public void _Execute(CpuTestData programData)
         {
