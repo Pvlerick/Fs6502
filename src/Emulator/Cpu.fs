@@ -598,18 +598,20 @@
                                     Negative = result >= 0x80uy } }
         
         member private this.JMP mode status cycles =
-            let (address, pageCrossed) = ga mode status
-
             let isIndirect = function Indirect _ -> true | _ -> false
             //Indirect JMP on page boundaries does not fetch to the correct address - this is a 6502 bug
-            if (isIndirect mode) && pageCrossed then
-                //Need to fetch the value from another address
+            if (isIndirect mode) then
                 let indirectAddress = match mode with Indirect(a) -> a | _ -> failwith "Cannot happen!"
-                let msb = status.Memory.[new Word(indirectAddress.Msb, 0x00uy)]
-                let lsb = status.Memory.[new Word(indirectAddress.Msb, 0xFFuy)]
-                let correctedAddress = new Word(msb, lsb)
-                { (ac status cycles false) with ProgramCounter = correctedAddress }
+                if (indirectAddress.Lsb = 0xFFuy) then
+                    let msb = status.Memory.[new Word(indirectAddress.Msb, 0x00uy)]
+                    let lsb = status.Memory.[indirectAddress]
+                    let correctedAddress = new Word(msb, lsb)
+                    { (ac status cycles false) with ProgramCounter = correctedAddress }
+                else
+                    let (address, pageCrossed) = ga mode status
+                    { (ac status cycles false) with ProgramCounter = address }
             else
+                let (address, pageCrossed) = ga mode status
                 { (ac status cycles false) with ProgramCounter = address }
 
         member private this.JSR mode status cycles =

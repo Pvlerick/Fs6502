@@ -1033,6 +1033,29 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
+        public void JMP_Indirect_Bug()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "LDA #$05",
+                    "JMP ($15FF)",  //Should fetches 15FF and 1600, but will fetch 15FF and 1500
+                    "LDA #$01",
+                    "LDX #$02"
+                });
+
+            var cpu = new Cpu();
+            cpu.Status.Memory[new Word(0x15, 0xFF)] = 0x07;
+            cpu.Status.Memory[new Word(0x16, 0x00)] = 0x01; //Should not use that one
+            cpu.Status.Memory[new Word(0x15, 0x00)] = 0x00;
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual("0009", cpu.Status.ProgramCounter.ToString());
+            Assert.AreEqual(0x05, cpu.Status.Accumulator);
+            Assert.AreEqual(0x02, cpu.Status.X);
+        }
+
+        [TestCase]
         public void JMP_Execute()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
