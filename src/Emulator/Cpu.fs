@@ -209,15 +209,15 @@
                     //Stack manipulations - PHA, PLA, PHP, PLP
                     | 0x48uy | 0x68uy | 0x08uy | 0x28uy ->
                         this.Stack opcode (apc this.Status 1)
-//                    //ADC - Add with Carry
-//                    | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
-//                    | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
-//                    | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
-//                    | 0x6Duy -> this.ADC (Absolute(gwa 1)) (apc this.Status 3) 4
-//                    | 0x7Duy -> this.ADC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
-//                    | 0x79uy -> this.ADC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
-//                    | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
-//                    | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //ADC - Add with Carry
+                    | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0x6Duy -> this.ADC (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0x7Duy -> this.ADC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0x79uy -> this.ADC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
 //                    //SBC - Substract with Carry
 //                    | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
 //                    | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -429,7 +429,18 @@
                 ac ( { newStatus with Flags = btf b } ) 4 false
             | _ -> failwithf "'%s' is not a stack manipulation opcode" (BitConverter.ToString [| opcode |])
 
-        member private this.ADC mode status cycles = status //TODO
+        member private this.ADC mode status cycles =
+            let (value, pageCrossed) = gv mode status
+
+            let result = (new Word(0x00uy, value)).Add(status.Accumulator).Add(if status.Flags.Carry then 1uy else 0uy)
+
+            let flags = { status.Flags with
+                            Zero = result.Lsb = 0uy;
+                            Carry = result.Msb > 0uy
+                            Negative = result.Lsb >= 0x80uy }
+
+            { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
+
 
         member private this.SBC mode status cycles = status //TODO
 
@@ -644,7 +655,7 @@
             let (value, pageCrossed) = gv mode status
             { (ac status cycles pageCrossed) with Accumulator = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
-        member private this.LDX mode status  cycles =
+        member private this.LDX mode status cycles =
             let (value, pageCrossed) = gv mode status
             { (ac status cycles pageCrossed) with X = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
