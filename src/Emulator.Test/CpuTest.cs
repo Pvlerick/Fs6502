@@ -1194,14 +1194,14 @@ namespace Fs6502.Emulator.Test
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$56",
-                    "ADC $#34"
+                    "LDA #$82",
+                    "ADC $#12"
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x8A, cpu.Status.Accumulator);
+            Assert.AreEqual(0x94, cpu.Status.Accumulator);
             Assert.IsFalse(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);
@@ -1228,7 +1228,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void ADC_Overflow()
+        public void ADC_OverflowNegative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -1239,11 +1239,11 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x39, cpu.Status.Accumulator);
+            Assert.AreEqual(0x80, cpu.Status.Accumulator);
             Assert.IsFalse(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
         }
 
         [TestCase]
@@ -1258,7 +1258,7 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x39, cpu.Status.Accumulator);
+            Assert.AreEqual(0x7F, cpu.Status.Accumulator);
             Assert.IsTrue(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsTrue(cpu.Status.Flags.Overflow);
@@ -1310,15 +1310,15 @@ namespace Fs6502.Emulator.Test
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$55",
                     "SEC",
-                    "ADC $#34"
+                    "LDA #$82",
+                    "ADC $#24"
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x8A, cpu.Status.Accumulator);
+            Assert.AreEqual(0xA7, cpu.Status.Accumulator);
             Assert.IsFalse(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);

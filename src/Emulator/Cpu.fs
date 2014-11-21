@@ -2,6 +2,7 @@
     module ByteExtension =
         type System.Byte with
             member this.ToUInt16 = System.BitConverter.ToUInt16([| this; 0uy; |], 0)
+            member this.ToInt16 = System.Convert.ToInt16((sbyte)this)
             member this.ToInt32 = System.BitConverter.ToInt32([| this; 0uy; 0uy; 0uy |], 0)
 
     open System
@@ -13,6 +14,7 @@
             val Msb: byte
             val Lsb: byte
             new(msb, lsb) = { Msb = msb; Lsb = lsb }
+            new(lsb) = { Msb = 0x00uy; Lsb = lsb }
             new(value: UInt16) =
                 let bs = BitConverter.GetBytes(value)
                 { Msb = bs.[1]; Lsb = bs.[0] }
@@ -432,11 +434,18 @@
         member private this.ADC mode status cycles =
             let (value, pageCrossed) = gv mode status
 
-            let result = (new Word(0x00uy, value)).Add(status.Accumulator).Add(if status.Flags.Carry then 1uy else 0uy)
+            let result = (new Word(value)).Add(status.Accumulator).Add(if status.Flags.Carry then 1uy else 0uy)
+            let sresult = value.ToInt16 + status.Accumulator.ToInt16 + (if status.Flags.Carry then 1s else 0s)
+
+            let overflow =
+                if value.ToInt16 >= 0s then sresult > 127s
+                else if value.ToInt16 < 0s then sresult < -128s
+                else false
 
             let flags = { status.Flags with
-                            Zero = result.Lsb = 0uy;
+                            Zero = result.Lsb = 0uy
                             Carry = result.Msb > 0uy
+                            Overflow = overflow
                             Negative = result.Lsb >= 0x80uy }
 
             { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
@@ -452,7 +461,7 @@
             { (ac status cycles pageCrossed) with
                 Accumulator = result;
                 Flags = { status.Flags with
-                            Zero = result = 0uy;
+                            Zero = result = 0uy
                             Negative = result >= 0x80uy
                 } }
 
