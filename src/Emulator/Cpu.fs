@@ -220,15 +220,15 @@
                     | 0x79uy -> this.ADC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
                     | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
                     | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
-//                    //SBC - Substract with Carry
-//                    | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
-//                    | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
-//                    | 0xF5uy -> this.SBC (ZeroPageX(gba 1)) (apc this.Status 2) 4
-//                    | 0xEDuy -> this.SBC (Absolute(gwa 1)) (apc this.Status 3) 4
-//                    | 0xFDuy -> this.SBC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
-//                    | 0xF9uy -> this.SBC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
-//                    | 0xE1uy -> this.SBC (IndirectX(gba 1)) (apc this.Status 2) 6
-//                    | 0xF1uy -> this.SBC (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //SBC - Substract with Carry
+                    | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0xF5uy -> this.SBC (ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0xEDuy -> this.SBC (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0xFDuy -> this.SBC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0xF9uy -> this.SBC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0xE1uy -> this.SBC (IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0xF1uy -> this.SBC (IndirectY(gba 1)) (apc this.Status 2) 5
                     //AND - Bitwise AND with Accumulator
                     | 0x29uy -> this.AND (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x25uy -> this.AND (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -434,24 +434,46 @@
         member private this.ADC mode status cycles =
             let (value, pageCrossed) = gv mode status
 
-            let result = (new Word(value)).Add(status.Accumulator).Add(if status.Flags.Carry then 1uy else 0uy)
-            let sresult = value.ToInt16 + status.Accumulator.ToInt16 + (if status.Flags.Carry then 1s else 0s)
+            if status.Flags.Decimal then
+                failwith "ADC with decimal flag set is not supported yet"
+            else
+                let result = (new Word(status.Accumulator)).Add(value).Add(if status.Flags.Carry then 1uy else 0uy)
+                let sresult = status.Accumulator.ToInt16 + value.ToInt16 + (if status.Flags.Carry then 1s else 0s)
 
-            let overflow =
-                if value.ToInt16 >= 0s then sresult > 127s
-                else if value.ToInt16 < 0s then sresult < -128s
-                else false
+                let overflow =
+                    if value.ToInt16 >= 0s then sresult > 127s
+                    else if value.ToInt16 < 0s then sresult < -128s
+                    else false
 
-            let flags = { status.Flags with
-                            Zero = result.Lsb = 0uy
-                            Carry = result.Msb > 0uy
-                            Overflow = overflow
-                            Negative = result.Lsb >= 0x80uy }
+                let flags = { status.Flags with
+                                Zero = result.Lsb = 0uy
+                                Carry = result.Msb > 0uy
+                                Overflow = overflow
+                                Negative = result.Lsb >= 0x80uy }
 
-            { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
+                { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
 
+        member private this.SBC mode status cycles =
+            let (value, pageCrossed) = gv mode status
 
-        member private this.SBC mode status cycles = status //TODO
+            if status.Flags.Decimal then
+                failwith "SBC with decimal flag set is not supported yet"
+            else
+                let result = (new Word(status.Accumulator)).Substract(value).Substract(if status.Flags.Carry then 0uy else 1uy)
+                let sresult = status.Accumulator.ToInt16 - value.ToInt16 - (if status.Flags.Carry then 0s else 1s)
+
+                let overflow =
+                    if value.ToInt16 >= 0s then sresult > 127s
+                    else if value.ToInt16 < 0s then sresult < -128s
+                    else false
+
+                let flags = { status.Flags with
+                                Zero = result.Lsb = 0uy
+                                Carry = result.Msb > 0uy
+                                Overflow = overflow
+                                Negative = result.Lsb >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
 
         member private this.AND mode status cycles =
             let (value, pageCrossed) = gv mode status
