@@ -469,7 +469,7 @@
 
                 let flags = { status.Flags with
                                 Zero = result.Lsb = 0uy
-                                Carry = result.Msb > 0uy
+                                Carry = result.Msb = 0uy
                                 Overflow = overflow
                                 Negative = result.Lsb >= 0x80uy }
 

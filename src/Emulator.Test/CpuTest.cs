@@ -1346,19 +1346,19 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void SBC()
+        public void SBC_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$45",
-                    "SBC $#2A"
+                    "LDA #$2F",
+                    "SBC #$1D"
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x1A, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.AreEqual(0x11, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);
             Assert.IsFalse(cpu.Status.Flags.Negative);
@@ -1384,26 +1384,7 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
-        public void SBC_Carry()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$2F",
-                    "SBC #$D3"
-                });
-
-            var cpu = new Cpu();
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x5B, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
-        }
-
-        [TestCase]
-        public void SBC_NegativeCarry()
+        public void SBC_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -1415,7 +1396,27 @@ namespace Fs6502.Emulator.Test
             cpu.Execute(0, program.ToArray());
 
             Assert.AreEqual(0xDE, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void SBC_WithCarry_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SEC",
+                    "LDA #$00",
+                    "SBC #$01"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0xFF, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);
             Assert.IsTrue(cpu.Status.Flags.Negative);
@@ -1426,8 +1427,9 @@ namespace Fs6502.Emulator.Test
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
+                    "SEC",
                     "LDA #$7F",
-                    "SBC $#01"
+                    "SBC $#FF"
                 });
 
             var cpu = new Cpu();
@@ -1445,8 +1447,9 @@ namespace Fs6502.Emulator.Test
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
+                    "SEC",
                     "LDA #$80",
-                    "SBC $#FF"
+                    "SBC $#01"
                 });
 
             var cpu = new Cpu();
@@ -1476,7 +1479,7 @@ namespace Fs6502.Emulator.Test
             Assert.IsFalse(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
         }
 
         [TestCase]
@@ -1493,34 +1496,14 @@ namespace Fs6502.Emulator.Test
             cpu.Execute(0, program.ToArray());
 
             Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
             Assert.IsTrue(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);
             Assert.IsFalse(cpu.Status.Flags.Negative);
         }
 
         [TestCase]
-        public void SBC_WithCarry_Negative()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "SEC",
-                    "LDA #$35",
-                    "SBC $#A0"
-                });
-
-            var cpu = new Cpu();
-            cpu.Execute(0, program.ToArray());
-
-            Assert.AreEqual(0x95, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
-        }
-
-        [TestCase]
-        public void SBC_WithCarry_Carry()
+        public void SBC_WithCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
@@ -1533,7 +1516,7 @@ namespace Fs6502.Emulator.Test
             cpu.Execute(0, program.ToArray());
 
             Assert.AreEqual(0x2D, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
             Assert.IsFalse(cpu.Status.Flags.Zero);
             Assert.IsFalse(cpu.Status.Flags.Overflow);
             Assert.IsFalse(cpu.Status.Flags.Negative);
