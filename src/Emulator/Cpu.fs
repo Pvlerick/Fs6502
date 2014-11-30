@@ -440,10 +440,7 @@
                 let result = (new Word(status.Accumulator)).Add(value).Add(if status.Flags.Carry then 1uy else 0uy)
                 let sresult = status.Accumulator.ToInt16 + value.ToInt16 + (if status.Flags.Carry then 1s else 0s)
 
-                let overflow =
-                    if value.ToInt16 >= 0s then sresult > 127s
-                    else if value.ToInt16 < 0s then sresult < -128s
-                    else false
+                let overflow = sresult > 127s || sresult < -128s
 
                 let flags = { status.Flags with
                                 Zero = result.Lsb = 0uy
@@ -462,10 +459,7 @@
                 let result = (new Word(status.Accumulator)).Substract(value).Substract(if status.Flags.Carry then 0uy else 1uy)
                 let sresult = status.Accumulator.ToInt16 - value.ToInt16 - (if status.Flags.Carry then 0s else 1s)
 
-                let overflow =
-                    if value.ToInt16 >= 0s then sresult > 127s
-                    else if value.ToInt16 < 0s then sresult < -128s
-                    else false
+                let overflow = sresult > 127s || sresult < -128s
 
                 let flags = { status.Flags with
                                 Zero = result.Lsb = 0uy
