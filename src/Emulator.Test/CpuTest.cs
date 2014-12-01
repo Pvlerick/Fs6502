@@ -1346,6 +1346,86 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
+        public void ADC_WithDecimal()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SED",
+                    "LDA #$05",
+                    "ADC $#03"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x08, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ADC_WithDecimal_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SED",
+                    "LDA #$81",
+                    "ADC #$92"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x73, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void ADC_WithDecimal_CarryNegative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SED",
+                    "LDA #$81",
+                    "ADC #$99"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x80, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
+        public void SBC_WithDecimal_Carry()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SED",
+                    "LDA #$46",
+                    "SBC #$12"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x33, cpu.Status.Accumulator);
+            Assert.IsTrue(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsFalse(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
         public void SBC_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]

@@ -435,7 +435,18 @@
             let (value, pageCrossed) = gv mode status
 
             if status.Flags.Decimal then
-                failwith "ADC with decimal flag set is not supported yet"
+                let gdv (b:byte) = ((b >>> 4).ToUInt16 * 10us) + (b &&& 0x0Fuy).ToUInt16
+
+                let iResult = (gdv status.Accumulator) + (gdv value)
+                let result = (byte)(((iResult % 100us) / 10us) * 16us + (iResult % 10us))
+
+                let flags = { status.Flags with
+                                Zero = result = 0uy
+                                Carry = (iResult / 100us) > 0us
+                                Negative = result >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result; Flags = flags }
+
             else
                 let result = (new Word(status.Accumulator)).Add(value).Add(if status.Flags.Carry then 1uy else 0uy)
                 let sresult = status.Accumulator.ToInt16 + value.ToInt16 + (if status.Flags.Carry then 1s else 0s)
