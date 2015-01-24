@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
 using Fs6502.Assembler;
+using Xunit;
 
 namespace Fs6502.Emulator.Test
 {
-    [TestFixture]
-    class CpuTest
+    public class CpuTest
     {
-        [TestCase]
+        [Fact]
         public void _Addressing_ZeroPage()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -24,12 +23,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x05, cpu.Status.Accumulator);
-            Assert.AreEqual(3, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(2), cpu.Status.ProgramCounter);
+            Assert.Equal(0x05, cpu.Status.Accumulator);
+            Assert.Equal(3ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(2), cpu.Status.ProgramCounter);
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_ZeroPageX()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -43,12 +42,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x05, cpu.Status.Accumulator);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x05, cpu.Status.Accumulator);
+            Assert.Equal(6ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_ZeroPageX_Wrapping()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -62,12 +61,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x04, cpu.Status.Accumulator);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x04, cpu.Status.Accumulator);
+            Assert.Equal(6ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_ZeroPageY()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -81,12 +80,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x07, cpu.Status.X);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x07, cpu.Status.X);
+            Assert.Equal(6ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_Absolute()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -99,12 +98,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x12, cpu.Status.Accumulator);
-            Assert.AreEqual(4, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(3).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x12, cpu.Status.Accumulator);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(3).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_AbsoluteX()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -118,12 +117,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x16, cpu.Status.Accumulator);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x16, cpu.Status.Accumulator);
+            Assert.Equal(6ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_AbsoluteX_PageCrossed()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -137,12 +136,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x20, cpu.Status.Accumulator);
-            Assert.AreEqual(7, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x20, cpu.Status.Accumulator);
+            Assert.Equal(7ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_AbsoluteY()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -156,12 +155,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x11, cpu.Status.Accumulator);
-            Assert.AreEqual(6, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x11, cpu.Status.Accumulator);
+            Assert.Equal(6ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_AbsoluteY_PageCrossed()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -175,12 +174,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x04, cpu.Status.Accumulator);
-            Assert.AreEqual(7, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x04, cpu.Status.Accumulator);
+            Assert.Equal(7ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(5).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_IndirectX()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -196,12 +195,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x19, cpu.Status.Accumulator);
-            Assert.AreEqual(8, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x19, cpu.Status.Accumulator);
+            Assert.Equal(8ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_IndirectX_Wrapping()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -217,12 +216,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x19, cpu.Status.Accumulator);
-            Assert.AreEqual(8, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x19, cpu.Status.Accumulator);
+            Assert.Equal(8ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_IndirectY()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -238,12 +237,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x21, cpu.Status.Accumulator);
-            Assert.AreEqual(7, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x21, cpu.Status.Accumulator);
+            Assert.Equal(7ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void _Addressing_IndirectY_PageCrossed()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -259,12 +258,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x55, cpu.Status.Accumulator);
-            Assert.AreEqual(8, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x55, cpu.Status.Accumulator);
+            Assert.Equal(8ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void LDA()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -276,14 +275,14 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x77, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(2, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x77, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Negative);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.Equal(2ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void LDA_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -295,14 +294,14 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.AreEqual(2, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Negative);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.Equal(2ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void LDA_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -314,14 +313,14 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x85, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.AreEqual(2, cpu.Status.Cycles);
-            Assert.AreEqual(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x85, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Negative);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.Equal(2ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void AND()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -334,12 +333,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x12, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x12, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void AND_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -352,12 +351,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void AND_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -370,12 +369,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x92, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x92, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void EOR()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -388,12 +387,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x5, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x5, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void EOR_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -406,12 +405,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void EOR_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -424,12 +423,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x84, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x84, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ORA()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -442,12 +441,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x15, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x15, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ORA_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -460,12 +459,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ORA_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -478,12 +477,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xC4, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xC4, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ASL()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -496,13 +495,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x78, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x78, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ASL_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -515,13 +514,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ASL_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -534,13 +533,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xE0, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xE0, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ASL_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -553,13 +552,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xBA, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xBA, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void LSR()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -572,13 +571,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x2E, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x2E, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void LSR_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -591,13 +590,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void LSR_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -610,13 +609,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x0A, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x0A, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROL_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -629,13 +628,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROL_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -648,13 +647,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xE0, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xE0, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROL_WithCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -668,13 +667,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x97, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x97, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROL_WithCarry_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -688,13 +687,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x69, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x69, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROL_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -707,13 +706,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xBA, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xBA, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROR()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -726,13 +725,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x2E, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x2E, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROR_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -745,13 +744,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROR_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -764,13 +763,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x0A, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x0A, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROR_WithCarry_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -784,13 +783,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x96, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x96, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ROR_WithCarry_Carry_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -804,13 +803,13 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x96, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x96, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void PHP_PLP()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -829,12 +828,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Interrupt);
-            Assert.IsTrue(cpu.Status.Flags.Decimal);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Interrupt);
+            Assert.True(cpu.Status.Flags.Decimal);
         }
 
-        [TestCase]
+        [Fact]
         public void BIT()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -848,12 +847,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void BIT_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -867,12 +866,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void BIT_Overflow()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -886,12 +885,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void BIT_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -905,12 +904,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void DEC()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -923,12 +922,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x24, cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)]);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x24, cpu.Status.Memory[new Emulator.Word(0x00, 0x2F)]);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void DEC_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -941,12 +940,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Memory[new Emulator.Word(0x00, 0xA2)]);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Memory[new Emulator.Word(0x00, 0xA2)]);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void DEC_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -959,12 +958,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x9F, cpu.Status.Memory[new Emulator.Word(0x00, 0x5B)]);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x9F, cpu.Status.Memory[new Emulator.Word(0x00, 0x5B)]);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void INC()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -977,12 +976,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x57, cpu.Status.Memory[new Emulator.Word(0x2A, 0x48)]);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x57, cpu.Status.Memory[new Emulator.Word(0x2A, 0x48)]);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void INC_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -995,12 +994,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Memory[new Emulator.Word(0x00, 0x4E)]);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Memory[new Emulator.Word(0x00, 0x4E)]);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Negative);
         }
         
-        [TestCase]
+        [Fact]
         public void INC_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1013,12 +1012,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x82, cpu.Status.Memory[new Emulator.Word(0x00, 0xF2)]);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x82, cpu.Status.Memory[new Emulator.Word(0x00, 0xF2)]);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void JMP()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1029,10 +1028,10 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual("DE05", cpu.Status.ProgramCounter.ToString());
+            Assert.Equal("DE05", cpu.Status.ProgramCounter.ToString());
         }
 
-        [TestCase]
+        [Fact]
         public void JMP_Indirect_Bug()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1050,12 +1049,12 @@ namespace Fs6502.Emulator.Test
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual("0009", cpu.Status.ProgramCounter.ToString());
-            Assert.AreEqual(0x05, cpu.Status.Accumulator);
-            Assert.AreEqual(0x02, cpu.Status.X);
+            Assert.Equal("0009", cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x05, cpu.Status.Accumulator);
+            Assert.Equal(0x02, cpu.Status.X);
         }
 
-        [TestCase]
+        [Fact]
         public void JMP_Execute()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1072,13 +1071,13 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(605, program.ToArray());
 
-            Assert.AreEqual("026C", cpu.Status.ProgramCounter.ToString());
-            Assert.AreEqual(0x2F, cpu.Status.Accumulator);
-            Assert.AreEqual(0x05, cpu.Status.X);
-            Assert.AreEqual(0x06, cpu.Status.Y);
+            Assert.Equal("026C", cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x2F, cpu.Status.Accumulator);
+            Assert.Equal(0x05, cpu.Status.X);
+            Assert.Equal(0x06, cpu.Status.Y);
         }
 
-        [TestCase]
+        [Fact]
         public void JSR()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1089,13 +1088,13 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(17724, program.ToArray()); //Starting address: 453C, 177245us
 
-            Assert.AreEqual("462B", cpu.Status.ProgramCounter.ToString());
-            Assert.AreEqual(0xFD, cpu.Status.StackPointer);
-            Assert.AreEqual(0x45, cpu.Status.Memory[new Emulator.Word(0x01, 0xFF)]); //Return point is 453C + 3 - 1 = 453E
-            Assert.AreEqual(0x3E, cpu.Status.Memory[new Emulator.Word(0x01, 0xFE)]);
+            Assert.Equal("462B", cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0xFD, cpu.Status.StackPointer);
+            Assert.Equal(0x45, cpu.Status.Memory[new Emulator.Word(0x01, 0xFF)]); //Return point is 453C + 3 - 1 = 453E
+            Assert.Equal(0x3E, cpu.Status.Memory[new Emulator.Word(0x01, 0xFE)]);
         }
 
-        [TestCase]
+        [Fact]
         public void RTS()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1117,13 +1116,13 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual("0015", cpu.Status.ProgramCounter.ToString());
-            Assert.AreEqual(0x20, cpu.Status.Accumulator);
-            Assert.AreEqual(0x31, cpu.Status.X);
-            Assert.AreEqual(0xA9, cpu.Status.Y);
+            Assert.Equal("0015", cpu.Status.ProgramCounter.ToString());
+            Assert.Equal(0x20, cpu.Status.Accumulator);
+            Assert.Equal(0x31, cpu.Status.X);
+            Assert.Equal(0xA9, cpu.Status.Y);
         }
 
-        [TestCase]
+        [Fact]
         public void RTI()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1145,13 +1144,13 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual("2BAA", cpu.Status.ProgramCounter.ToString());
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Interrupt);
-            Assert.IsTrue(cpu.Status.Flags.Decimal);
+            Assert.Equal("2BAA", cpu.Status.ProgramCounter.ToString());
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Interrupt);
+            Assert.True(cpu.Status.Flags.Decimal);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1163,14 +1162,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x6F, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x6F, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_ZeroCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1182,14 +1181,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1201,14 +1200,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x94, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x94, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1220,14 +1219,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x39, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x39, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_OverflowNegative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1239,14 +1238,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x80, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x80, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_OverflowCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1258,14 +1257,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x7F, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x7F, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1278,14 +1277,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x6F, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x6F, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithCarry_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1298,14 +1297,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithCarry_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1318,14 +1317,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xA7, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xA7, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithCarry_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1338,14 +1337,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x39, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x39, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithDecimal()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1358,14 +1357,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x08, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x08, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithDecimal_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1378,14 +1377,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x73, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x73, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void ADC_WithDecimal_CarryNegative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1398,14 +1397,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x80, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x80, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_WithDecimal_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1418,14 +1417,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x33, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x33, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_WithDecimal_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1438,14 +1437,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x92, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x92, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1457,14 +1456,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x11, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x11, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_ZeroCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1476,14 +1475,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1495,14 +1494,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xDE, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xDE, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_OverflowNegative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1515,14 +1514,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x80, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0x80, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_OverflowCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1535,14 +1534,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x7F, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsTrue(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x7F, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.True(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_WithCarry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1555,14 +1554,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x2D, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x2D, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_WithCarry_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1575,14 +1574,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x1A, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x1A, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_WithCarry_Negative()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1595,14 +1594,14 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0xFF, cpu.Status.Accumulator);
-            Assert.IsFalse(cpu.Status.Flags.Carry);
-            Assert.IsFalse(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsTrue(cpu.Status.Flags.Negative);
+            Assert.Equal(0xFF, cpu.Status.Accumulator);
+            Assert.False(cpu.Status.Flags.Carry);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [TestCase]
+        [Fact]
         public void SBC_WithCarry_Zero()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
@@ -1615,20 +1614,20 @@ namespace Fs6502.Emulator.Test
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.AreEqual(0x00, cpu.Status.Accumulator);
-            Assert.IsTrue(cpu.Status.Flags.Carry);
-            Assert.IsTrue(cpu.Status.Flags.Zero);
-            Assert.IsFalse(cpu.Status.Flags.Overflow);
-            Assert.IsFalse(cpu.Status.Flags.Negative);
+            Assert.Equal(0x00, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Carry);
+            Assert.True(cpu.Status.Flags.Zero);
+            Assert.False(cpu.Status.Flags.Overflow);
+            Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [TestCaseSource("TestData")]
+        //[FactSource("TestData")]
         public void _Execute(CpuTestData programData)
         {
             var cpu = new Cpu();
             cpu.Execute(programData.EntryPoint, programData.MachineCode);
 
-            Assert.IsTrue(programData.Assertion(cpu.Status));
+            Assert.True(programData.Assertion(cpu.Status));
         }
 
         public class CpuTestData
