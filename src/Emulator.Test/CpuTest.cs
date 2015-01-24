@@ -263,23 +263,60 @@ namespace Fs6502.Emulator.Test
             Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [Fact]
-        public void LDA()
+        [Theory]
+        [MemberData("LDA_Data")]
+        public void LDA(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$77"    //2 cycles
+                    String.Format("LDA #${0:X}", b) //2 cycles
                 });
 
             var cpu = new Cpu();
 
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0x77, cpu.Status.Accumulator);
+            Assert.Equal(b, cpu.Status.Accumulator);
             Assert.False(cpu.Status.Flags.Negative);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.Equal(2ul, cpu.Status.Cycles);
             Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
+        }
+
+        public static IEnumerable<object[]> LDA_Data
+        {
+            get
+            {
+                return Enumerable.Range(1, 127).Select(i => (byte)i).Select(b => new object[] { b }).ToList().AsEnumerable();
+            }
+        }
+
+        [Theory]
+        [MemberData("LDA_Negative_Data")]
+        public void LDA_Negative(byte b)
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    String.Format("LDA #${0:X}", b) //2 cycles
+                });
+
+            var cpu = new Cpu();
+
+            cpu.Execute(0, program.ToArray());
+
+            Assert.Equal(b, cpu.Status.Accumulator);
+            Assert.True(cpu.Status.Flags.Negative);
+            Assert.False(cpu.Status.Flags.Zero);
+            Assert.Equal(2ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
+        }
+
+        public static IEnumerable<object[]> LDA_Negative_Data
+        {
+            get
+            {
+                return Enumerable.Range(128, 128).Select(i => (byte)i).Select(b => new object[] { b }).ToList().AsEnumerable();
+            }
         }
 
         [Fact]
@@ -297,25 +334,6 @@ namespace Fs6502.Emulator.Test
             Assert.Equal(0x00, cpu.Status.Accumulator);
             Assert.False(cpu.Status.Flags.Negative);
             Assert.True(cpu.Status.Flags.Zero);
-            Assert.Equal(2ul, cpu.Status.Cycles);
-            Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
-        }
-
-        [Fact]
-        public void LDA_Negative()
-        {
-            var program = new Assembler.Assembler().Assemble(new String[]
-                {
-                    "LDA #$85"    //2 cycles
-                });
-
-            var cpu = new Cpu();
-
-            cpu.Execute(0, program.ToArray());
-
-            Assert.Equal(0x85, cpu.Status.Accumulator);
-            Assert.True(cpu.Status.Flags.Negative);
-            Assert.False(cpu.Status.Flags.Zero);
             Assert.Equal(2ul, cpu.Status.Cycles);
             Assert.Equal(new Word(2).ToString(), cpu.Status.ProgramCounter.ToString());
         }
@@ -1150,23 +1168,34 @@ namespace Fs6502.Emulator.Test
             Assert.True(cpu.Status.Flags.Decimal);
         }
 
-        [Fact]
-        public void ADC()
+        [Theory]
+        [MemberData("ADC_Data")]
+        public void ADC(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$2B",
-                    "ADC $#44"
+                    "LDA #$01",                         //2 cycles
+                    String.Format("ADC #${0:X}", b)     //2 cycles
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0x6F, cpu.Status.Accumulator);
+            Assert.Equal(b + 1, cpu.Status.Accumulator);
             Assert.False(cpu.Status.Flags.Carry);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.False(cpu.Status.Flags.Overflow);
             Assert.False(cpu.Status.Flags.Negative);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+        }
+
+        public static IEnumerable<object[]> ADC_Data
+        {
+            get
+            {
+                return Enumerable.Range(0, 126).Select(i => new object[] { (byte)i }).ToList().AsEnumerable();
+            }
         }
 
         [Fact]
@@ -1188,23 +1217,34 @@ namespace Fs6502.Emulator.Test
             Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [Fact]
-        public void ADC_Negative()
+        [Theory]
+        [MemberData("ADC_Negative_Data")]
+        public void ADC_Negative(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$82",
-                    "ADC $#12"
+                    "LDA #$01",                         //2 cycles
+                    String.Format("ADC #${0:X}", b)     //2 cycles
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0x94, cpu.Status.Accumulator);
+            Assert.Equal(b + 1, cpu.Status.Accumulator);
             Assert.False(cpu.Status.Flags.Carry);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.False(cpu.Status.Flags.Overflow);
             Assert.True(cpu.Status.Flags.Negative);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+        }
+
+        public static IEnumerable<object[]> ADC_Negative_Data
+        {
+            get
+            {
+                return Enumerable.Range(128, 127).Select(i => new object[] { (byte)i }).ToList().AsEnumerable();
+            }
         }
 
         [Fact]
