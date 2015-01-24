@@ -465,7 +465,18 @@
             let (value, pageCrossed) = gv mode status
 
             if status.Flags.Decimal then
-                failwith "SBC with decimal flag set is not supported yet"
+                let gdv (b:byte) = ((b >>> 4).ToUInt16 * 10us) + (b &&& 0x0Fuy).ToUInt16
+
+                let iResult = 100us + (gdv status.Accumulator) - (gdv value) - (if status.Flags.Carry then 0us else 1us)
+                let result = (byte)(((iResult % 100us) / 10us) * 16us + (iResult % 10us))
+
+                let flags = { status.Flags with
+                                Zero = result = 0uy
+                                Carry = iResult > 100us
+                                Negative = result >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result; Flags = flags }
+
             else
                 let result = (new Word(status.Accumulator)).Substract(value).Substract(if status.Flags.Carry then 0uy else 1uy)
                 let sresult = status.Accumulator.ToInt16 - value.ToInt16 - (if status.Flags.Carry then 0s else 1s)

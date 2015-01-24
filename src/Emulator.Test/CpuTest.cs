@@ -1426,6 +1426,26 @@ namespace Fs6502.Emulator.Test
         }
 
         [TestCase]
+        public void SBC_WithDecimal_Negative()
+        {
+            var program = new Assembler.Assembler().Assemble(new String[]
+                {
+                    "SED",
+                    "LDA #$46",
+                    "SBC #$53"
+                });
+
+            var cpu = new Cpu();
+            cpu.Execute(0, program.ToArray());
+
+            Assert.AreEqual(0x92, cpu.Status.Accumulator);
+            Assert.IsFalse(cpu.Status.Flags.Carry);
+            Assert.IsFalse(cpu.Status.Flags.Zero);
+            Assert.IsFalse(cpu.Status.Flags.Overflow);
+            Assert.IsTrue(cpu.Status.Flags.Negative);
+        }
+
+        [TestCase]
         public void SBC_Carry()
         {
             var program = new Assembler.Assembler().Assemble(new String[]
