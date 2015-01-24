@@ -2,6 +2,7 @@
     module ByteExtension =
         type System.Byte with
             member this.ToUInt16 = System.BitConverter.ToUInt16([| this; 0uy; |], 0)
+            member this.ToInt16 = System.Convert.ToInt16((sbyte)this)
             member this.ToInt32 = System.BitConverter.ToInt32([| this; 0uy; 0uy; 0uy |], 0)
 
     open System
@@ -13,6 +14,7 @@
             val Msb: byte
             val Lsb: byte
             new(msb, lsb) = { Msb = msb; Lsb = lsb }
+            new(lsb) = { Msb = 0x00uy; Lsb = lsb }
             new(value: UInt16) =
                 let bs = BitConverter.GetBytes(value)
                 { Msb = bs.[1]; Lsb = bs.[0] }
@@ -133,6 +135,31 @@
             let b = status.Memory.[new Word(StackPageReference, newSP)]
             (b, { status with StackPointer = newSP })
 
+        //Flags conversion to/from byte
+        let ftb flags=
+            let mutable ps = 0uy
+            if flags.Carry then ps <- ps ||| (1uy <<< 0)
+            if flags.Zero then ps <- ps ||| (1uy <<< 1)
+            if flags.Interrupt then ps <- ps ||| (1uy <<< 2)
+            if flags.Decimal then ps <- ps ||| (1uy <<< 3)
+            if flags.BreakCommand then ps <- ps ||| (1uy <<< 4)
+            if flags._Reserved then ps <- ps ||| (1uy <<< 5)
+            if flags.Overflow then ps <- ps ||| (1uy <<< 6)
+            if flags.Negative then ps <- ps ||| (1uy <<< 7)
+            ps
+
+        let btf b =
+            {
+                Carry = (b &&& (1uy <<< 0) > 0uy);
+                Zero = (b &&& (1uy <<< 1) > 0uy);
+                Interrupt = (b &&& (1uy <<< 2) > 0uy);
+                Decimal = (b &&& (1uy <<< 3) > 0uy);
+                BreakCommand = (b &&& (1uy <<< 4) > 0uy);
+                _Reserved = (b &&& (1uy <<< 5) > 0uy);
+                Overflow = (b &&& (1uy <<< 6) > 0uy);
+                Negative = (b &&& (1uy <<< 7) > 0uy);
+            }
+
         member val public Status =
             {
                 Accumulator = 0uy
@@ -184,24 +211,24 @@
                     //Stack manipulations - PHA, PLA, PHP, PLP
                     | 0x48uy | 0x68uy | 0x08uy | 0x28uy ->
                         this.Stack opcode (apc this.Status 1)
-//                    //ADC - Add with Carry
-//                    | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
-//                    | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
-//                    | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
-//                    | 0x6Duy -> this.ADC (Absolute(gwa 1)) (apc this.Status 3) 4
-//                    | 0x7Duy -> this.ADC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
-//                    | 0x79uy -> this.ADC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
-//                    | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
-//                    | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
-//                    //SBC - Substract with Carry
-//                    | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
-//                    | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
-//                    | 0xF5uy -> this.SBC (ZeroPageX(gba 1)) (apc this.Status 2) 4
-//                    | 0xEDuy -> this.SBC (Absolute(gwa 1)) (apc this.Status 3) 4
-//                    | 0xFDuy -> this.SBC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
-//                    | 0xF9uy -> this.SBC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
-//                    | 0xE1uy -> this.SBC (IndirectX(gba 1)) (apc this.Status 2) 6
-//                    | 0xF1uy -> this.SBC (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //ADC - Add with Carry
+                    | 0x69uy -> this.ADC (Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0x65uy -> this.ADC (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0x75uy -> this.ADC (ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0x6Duy -> this.ADC (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0x7Duy -> this.ADC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0x79uy -> this.ADC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0x61uy -> this.ADC (IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0x71uy -> this.ADC (IndirectY(gba 1)) (apc this.Status 2) 5
+                    //SBC - Substract with Carry
+                    | 0xE9uy -> this.SBC (Immediate(gba 1)) (apc this.Status 2) 2
+                    | 0xE5uy -> this.SBC (ZeroPage(gba 1)) (apc this.Status 2) 3
+                    | 0xF5uy -> this.SBC (ZeroPageX(gba 1)) (apc this.Status 2) 4
+                    | 0xEDuy -> this.SBC (Absolute(gwa 1)) (apc this.Status 3) 4
+                    | 0xFDuy -> this.SBC (AbsoluteX(gwa 1)) (apc this.Status 3) 4
+                    | 0xF9uy -> this.SBC (AbsoluteY(gwa 1)) (apc this.Status 3) 4
+                    | 0xE1uy -> this.SBC (IndirectX(gba 1)) (apc this.Status 2) 6
+                    | 0xF1uy -> this.SBC (IndirectY(gba 1)) (apc this.Status 2) 5
                     //AND - Bitwise AND with Accumulator
                     | 0x29uy -> this.AND (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x25uy -> this.AND (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -259,7 +286,7 @@
                     //JMP - Jump
                     | 0x4Cuy -> this.JMP (Absolute(gwa 1)) (apc this.Status 3) 3
                     | 0x6Cuy -> this.JMP (Indirect(gwa 1)) (apc this.Status 3) 5
-                    //JSR - Jump to Subrouting
+                    //JSR - Jump to Subroutine
                     | 0x20uy -> this.JSR (Absolute(gwa 1)) (apc this.Status 3) 6
                     //LDA - Load Accumulator
                     | 0xA9uy -> this.LDA (Immediate(gba 1)) (apc this.Status 2) 2
@@ -288,6 +315,8 @@
                     | 0x56uy -> this.LSR (ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0x4Euy -> this.LSR (Absolute(gwa 1)) (apc this.Status 3) 6
                     | 0x5Euy -> this.LSR (AbsoluteX(gwa 1)) (apc this.Status 3) 7
+                    //NOP No Operation
+                    | 0xEAuy -> ac (apc this.Status 1) 2 false
                     //ORA - Bitwise Inclusive OR with Accumulator
                     | 0x09uy -> this.ORA (Immediate(gba 1)) (apc this.Status 2) 2
                     | 0x05uy -> this.ORA (ZeroPage(gba 1)) (apc this.Status 2) 3
@@ -309,6 +338,10 @@
                     | 0x76uy -> this.ROR (ZeroPageX(gba 1)) (apc this.Status 2) 6
                     | 0x6Euy -> this.ROR (Absolute(gwa 1)) (apc this.Status 2) 6
                     | 0x7Euy -> this.ROR (AbsoluteX(gwa 1)) (apc this.Status 2) 7
+                    //RTI - Return from Interrupt
+                    | 0x40uy -> this.RTI Implied (apc this.Status 1) 6
+                    //RTS - Return from Subroutine
+                    | 0x60uy -> this.RTS Implied (apc this.Status 1) 6
                     //Store Instructions - STA, STX, STY
                     | 0x85uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x95uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
@@ -351,13 +384,13 @@
 
         member private this.Flags opcode status =
             match opcode with
-            | 0x18uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = false } }       //CLC
-            | 0x38uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = true } }        //SEC
-            | 0x58uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = false } }   //CLI
-            | 0x78uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = true } }    //SEI
-            | 0xB8uy -> { (ac status 2 false) with Flags = { status.Flags with Overflow = false } }    //CLV
-            | 0xD8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = false } }     //CLD
-            | 0xF8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = true } }      //SED
+            | 0x18uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = false } }             //CLC
+            | 0x38uy -> { (ac status 2 false) with Flags = { status.Flags with Carry = true } }              //SEC
+            | 0x58uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = false } }         //CLI
+            | 0x78uy -> { (ac status 2 false) with Flags = { status.Flags with Interrupt = true } }          //SEI
+            | 0xB8uy -> { (ac status 2 false) with Flags = { status.Flags with Overflow = false } }          //CLV
+            | 0xD8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = false } }           //CLD
+            | 0xF8uy -> { (ac status 2 false) with Flags = { status.Flags with Decimal = true } }            //SED
             | _ -> failwithf "'%s' is not a flag manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Registers opcode status =
@@ -381,7 +414,7 @@
                 let newY = status.Y + 01uy
                 { (ac status 2 false) with Y = newY; Flags = setFlags newY status.Flags }
             | 0x9Auy -> { (ac status 2 false) with StackPointer = status.X }                                 //TXS
-            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer }                                //TSX
+            | 0xBAuy -> { (ac status 2 false) with X = status.StackPointer }                                 //TSX
             | _ -> failwithf "'%s' is not a register manipulation opcode" (BitConverter.ToString [| opcode |])
 
         member private this.Stack opcode status =
@@ -391,36 +424,72 @@
                 let (b, newStatus) = pop status
                 { (ac newStatus 4 false) with Accumulator = b }
             | 0x08uy ->                                                                                                   //PHP
-                let mutable ps = 0uy
-                if status.Flags.Carry then ps <- ps ||| (1uy <<< 0)
-                if status.Flags.Zero then ps <- ps ||| (1uy <<< 1)
-                if status.Flags.Interrupt then ps <- ps ||| (1uy <<< 2)
-                if status.Flags.Decimal then ps <- ps ||| (1uy <<< 3)
-                if status.Flags.BreakCommand then ps <- ps ||| (1uy <<< 4)
-                if status.Flags._Reserved then ps <- ps ||| (1uy <<< 5)
-                if status.Flags.Overflow then ps <- ps ||| (1uy <<< 6)
-                if status.Flags.Negative then ps <- ps ||| (1uy <<< 7)
+                let ps = ftb status.Flags
                 ac (push ps status) 3 false
             | 0x28uy ->                                                                                                   //PLP
                 let (b, newStatus) = pop status
-                ac ({ newStatus with
-                        Flags =
-                            {
-                                Carry = (b &&& (1uy <<< 0) > 0uy);
-                                Zero = (b &&& (1uy <<< 1) > 0uy);
-                                Interrupt = (b &&& (1uy <<< 2) > 0uy);
-                                Decimal = (b &&& (1uy <<< 3) > 0uy);
-                                BreakCommand = (b &&& (1uy <<< 4) > 0uy);
-                                _Reserved = (b &&& (1uy <<< 5) > 0uy);
-                                Overflow = (b &&& (1uy <<< 6) > 0uy);
-                                Negative = (b &&& (1uy <<< 7) > 0uy);
-                            }
-                }) 4 false
+                ac ( { newStatus with Flags = btf b } ) 4 false
             | _ -> failwithf "'%s' is not a stack manipulation opcode" (BitConverter.ToString [| opcode |])
 
-        member private this.ADC mode status cycles = status //TODO
+        member private this.ADC mode status cycles =
+            let (value, pageCrossed) = gv mode status
 
-        member private this.SBC mode status cycles = status //TODO
+            if status.Flags.Decimal then
+                let gdv (b:byte) = ((b >>> 4).ToUInt16 * 10us) + (b &&& 0x0Fuy).ToUInt16
+
+                let iResult = (gdv status.Accumulator) + (gdv value)
+                let result = (byte)(((iResult % 100us) / 10us) * 16us + (iResult % 10us))
+
+                let flags = { status.Flags with
+                                Zero = result = 0uy
+                                Carry = (iResult / 100us) > 0us
+                                Negative = result >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result; Flags = flags }
+
+            else
+                let result = (new Word(status.Accumulator)).Add(value).Add(if status.Flags.Carry then 1uy else 0uy)
+                let sresult = status.Accumulator.ToInt16 + value.ToInt16 + (if status.Flags.Carry then 1s else 0s)
+
+                let overflow = sresult > 127s || sresult < -128s
+
+                let flags = { status.Flags with
+                                Zero = result.Lsb = 0uy
+                                Carry = result.Msb > 0uy
+                                Overflow = overflow
+                                Negative = result.Lsb >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
+
+        member private this.SBC mode status cycles =
+            let (value, pageCrossed) = gv mode status
+
+            if status.Flags.Decimal then
+                let gdv (b:byte) = ((b >>> 4).ToUInt16 * 10us) + (b &&& 0x0Fuy).ToUInt16
+
+                let iResult = 100us + (gdv status.Accumulator) - (gdv value) - (if status.Flags.Carry then 0us else 1us)
+                let result = (byte)(((iResult % 100us) / 10us) * 16us + (iResult % 10us))
+
+                let flags = { status.Flags with
+                                Zero = result = 0uy
+                                Carry = iResult > 100us
+                                Negative = result >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result; Flags = flags }
+
+            else
+                let result = (new Word(status.Accumulator)).Substract(value).Substract(if status.Flags.Carry then 0uy else 1uy)
+                let sresult = status.Accumulator.ToInt16 - value.ToInt16 - (if status.Flags.Carry then 0s else 1s)
+
+                let overflow = sresult > 127s || sresult < -128s
+
+                let flags = { status.Flags with
+                                Zero = result.Lsb = 0uy
+                                Carry = result.Msb = 0uy
+                                Overflow = overflow
+                                Negative = result.Lsb >= 0x80uy }
+
+                { (ac status cycles pageCrossed) with Accumulator = result.Lsb; Flags = flags }
 
         member private this.AND mode status cycles =
             let (value, pageCrossed) = gv mode status
@@ -430,7 +499,7 @@
             { (ac status cycles pageCrossed) with
                 Accumulator = result;
                 Flags = { status.Flags with
-                            Zero = result = 0uy;
+                            Zero = result = 0uy
                             Negative = result >= 0x80uy
                 } }
 
@@ -587,12 +656,21 @@
                                     Negative = result >= 0x80uy } }
         
         member private this.JMP mode status cycles =
-            let (address, pageCrossed) = ga mode status
-
-            //TODO Indirect JMP cannot be on page boundaries, this is a 6502 bug
-            //if (mode(_) = Indirect) && pageCrossed then failwith "JMP does not support"
-
-            { (ac status cycles false) with ProgramCounter = address }
+            let isIndirect = function Indirect _ -> true | _ -> false
+            //Indirect JMP on page boundaries does not fetch to the correct address - this is a 6502 bug
+            if (isIndirect mode) then
+                let indirectAddress = match mode with Indirect(a) -> a | _ -> failwith "Cannot happen!"
+                if (indirectAddress.Lsb = 0xFFuy) then
+                    let msb = status.Memory.[new Word(indirectAddress.Msb, 0x00uy)]
+                    let lsb = status.Memory.[indirectAddress]
+                    let correctedAddress = new Word(msb, lsb)
+                    { (ac status cycles false) with ProgramCounter = correctedAddress }
+                else
+                    let (address, pageCrossed) = ga mode status
+                    { (ac status cycles false) with ProgramCounter = address }
+            else
+                let (address, pageCrossed) = ga mode status
+                { (ac status cycles false) with ProgramCounter = address }
 
         member private this.JSR mode status cycles =
             let (address, _) = ga mode status
@@ -602,13 +680,29 @@
             let newStatus = push returnPC.Lsb (push returnPC.Msb status)
 
             { (ac newStatus cycles false) with ProgramCounter = address }
+        
+        member private this.RTS mode status cycles =
+            let (lsb, s1) = pop status //Pop the PC
+            let (msb, s2) = pop s1
+            let address = new Word(msb, lsb)
 
+            { (ac s2 cycles false) with ProgramCounter = address }
+
+        member private this.RTI mode status cycles =
+            let (ps, s1) = pop status //Pop the processor flags
+            let flags = btf ps
+
+            let (lsb, s2) = pop s1 //Pop the PC
+            let (msb, s3) = pop s2
+            let address = new Word(msb, lsb)
+
+            { (ac s3 cycles false) with ProgramCounter = address; Flags = flags }
 
         member private this.LDA mode status cycles =
             let (value, pageCrossed) = gv mode status
             { (ac status cycles pageCrossed) with Accumulator = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
-        member private this.LDX mode status  cycles =
+        member private this.LDX mode status cycles =
             let (value, pageCrossed) = gv mode status
             { (ac status cycles pageCrossed) with X = value; Flags = { status.Flags with Zero = value = 0uy; Negative = value >= 0x80uy } }
 
