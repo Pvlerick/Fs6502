@@ -31,22 +31,7 @@ namespace Simulator
             this.Assembler = new Assembler();
             this.Cpu = new Cpu();
 
-            this.CodeLines.Text = @"  LDX #$00
-  LDY #$00
-firstloop:
-  TXA
-  STA $0200,Y
-  PHA
-  INX
-  INY
-  CPY #$10
-  BNE firstloop ;loop until Y is $10
-secondloop:
-  PLA
-  STA $0200,Y
-  INY
-  CPY #$20      ;loop until Y is $20
-  BNE secondloop";
+            this.CodeLines.Text = @"";
         }
 
         private Assembler Assembler { get; set; }
@@ -57,7 +42,7 @@ secondloop:
             this.RunButton.IsEnabled = false;
 
             var machineCode = this.Assembler.Assemble(this.CodeLines.Text.Split('\n'));
-            this.Cpu.Execute(1536, machineCode.ToArray());
+            this.Cpu.Execute(0, machineCode.ToArray());
 
             Task.Factory.StartNew(() =>
             {

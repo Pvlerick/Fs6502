@@ -287,7 +287,7 @@ namespace Fs6502.Emulator.Test
         {
             get
             {
-                return Enumerable.Range(1, 127).Select(i => (byte)i).Select(b => new object[] { b }).ToList().AsEnumerable();
+                return Enumerable.Range(1, 127).ToObjectArrayList();
             }
         }
 
@@ -315,7 +315,7 @@ namespace Fs6502.Emulator.Test
         {
             get
             {
-                return Enumerable.Range(128, 128).Select(i => (byte)i).Select(b => new object[] { b }).ToList().AsEnumerable();
+                return Enumerable.Range(128, 128).ToObjectArrayList();
             }
         }
 
@@ -1194,7 +1194,7 @@ namespace Fs6502.Emulator.Test
         {
             get
             {
-                return Enumerable.Range(0, 126).Select(i => new object[] { (byte)i }).ToList().AsEnumerable();
+                return Enumerable.Range(0, 126).ToObjectArrayList();
             }
         }
 
@@ -1243,7 +1243,7 @@ namespace Fs6502.Emulator.Test
         {
             get
             {
-                return Enumerable.Range(128, 127).Select(i => new object[] { (byte)i }).ToList().AsEnumerable();
+                return Enumerable.Range(128, 127).ToObjectArrayList();
             }
         }
 
@@ -1484,23 +1484,34 @@ namespace Fs6502.Emulator.Test
             Assert.True(cpu.Status.Flags.Negative);
         }
 
-        [Fact]
-        public void SBC_Carry()
+        [Theory]
+        [MemberData("SBC_Carry_Data")]
+        public void SBC_Carry(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$2F",
-                    "SBC #$1D"
+                    "LDA #$7F",                         //2 cycles
+                    String.Format("SBC #${0:X}", b)     //2 cycles
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0x11, cpu.Status.Accumulator);
+            Assert.Equal(127 - 1 - b, cpu.Status.Accumulator); //7F - Carry - byte value
             Assert.True(cpu.Status.Flags.Carry);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.False(cpu.Status.Flags.Overflow);
             Assert.False(cpu.Status.Flags.Negative);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+        }
+
+        public static IEnumerable<object[]> SBC_Carry_Data
+        {
+            get
+            {
+                return Enumerable.Range(0, 126).ToObjectArrayList();
+            }
         }
 
         [Fact]
@@ -1508,8 +1519,8 @@ namespace Fs6502.Emulator.Test
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$1D",
-                    "SBC #$1C"
+                    "LDA #$01",
+                    "SBC #$00"
                 });
 
             var cpu = new Cpu();
@@ -1522,63 +1533,94 @@ namespace Fs6502.Emulator.Test
             Assert.False(cpu.Status.Flags.Negative);
         }
 
-        [Fact]
-        public void SBC_Negative()
+        [Theory]
+        [MemberData("SBC_Negative_Data")]
+        public void SBC_Negative(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "LDA #$4A",
-                    "SBC $#6B"
+                    "LDA #$01",                         //2 cycles
+                    String.Format("SBC #${0:X}", b)     //2 cycles
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0xDE, cpu.Status.Accumulator);
+            Assert.Equal(256 - b, cpu.Status.Accumulator);    //FF - byte value
             Assert.False(cpu.Status.Flags.Carry);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.False(cpu.Status.Flags.Overflow);
             Assert.True(cpu.Status.Flags.Negative);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [Fact]
-        public void SBC_OverflowNegative()
+        public static IEnumerable<object[]> SBC_Negative_Data
+        {
+            get
+            {
+                return Enumerable.Range(1, 127).ToObjectArrayList();
+            }
+        }
+
+        [Theory]
+        [MemberData("SBC_OverflowNegative_Data")]
+        public void SBC_OverflowNegative(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "SEC",
-                    "LDA #$7F",
-                    "SBC $#FF"
+                    "LDA #$7F",                         //2 cycles
+                    String.Format("SBC #${0:X}", b)     //2 cycles
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0x80, cpu.Status.Accumulator);
+            Assert.Equal(255 + 127 - b, cpu.Status.Accumulator);
             Assert.False(cpu.Status.Flags.Carry);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.True(cpu.Status.Flags.Overflow);
             Assert.True(cpu.Status.Flags.Negative);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
         }
 
-        [Fact]
-        public void SBC_OverflowCarry()
+        public static IEnumerable<object[]> SBC_OverflowNegative_Data
+        {
+            get
+            {
+                return Enumerable.Range(128, 127).ToObjectArrayList(); //128 -> 254
+            }
+        }
+
+        [Theory]
+        [MemberData("SBC_OverflowCarry_Data")]
+        public void SBC_OverflowCarry(byte b)
         {
             var program = new Assembler.Assembler().Assemble(new String[]
                 {
-                    "SEC",
-                    "LDA #$80",
-                    "SBC $#01"
+                    "LDA #$80",                         //2 cycles
+                    String.Format("SBC #${0:X}", b)     //2 cycles
                 });
 
             var cpu = new Cpu();
             cpu.Execute(0, program.ToArray());
 
-            Assert.Equal(0x7F, cpu.Status.Accumulator);
+            Assert.Equal(127 - b, cpu.Status.Accumulator); //7F - Carry - byte value
             Assert.True(cpu.Status.Flags.Carry);
             Assert.False(cpu.Status.Flags.Zero);
             Assert.True(cpu.Status.Flags.Overflow);
             Assert.False(cpu.Status.Flags.Negative);
+            Assert.Equal(4ul, cpu.Status.Cycles);
+            Assert.Equal(new Word(4).ToString(), cpu.Status.ProgramCounter.ToString());
+        }
+
+        public static IEnumerable<object[]> SBC_OverflowCarry_Data
+        {
+            get
+            {
+                return Enumerable.Range(0, 127).ToObjectArrayList();
+            }
         }
 
         [Fact]
@@ -1661,7 +1703,8 @@ namespace Fs6502.Emulator.Test
             Assert.False(cpu.Status.Flags.Negative);
         }
 
-        //[FactSource("TestData")]
+        [Theory]
+        [MemberData("_Execute_Data")]
         public void _Execute(CpuTestData programData)
         {
             var cpu = new Cpu();
@@ -1684,57 +1727,71 @@ namespace Fs6502.Emulator.Test
             }
         }
 
-        protected static CpuTestData[] TestData =
+        public static IEnumerable<CpuTestData[]> _Execute_Data
         {
-            //Following code courtesy of Nick Morgan, https://skilldrick.github.io/easy6502/
-            new  CpuTestData(
-                1536,
-                new Assembler.Assembler().Assemble(new String[]
+            get
+            {
+                //Following code courtesy of Nick Morgan, https://skilldrick.github.io/easy6502/
+                return new CpuTestData[]
                 {
-                    "  LDA #$01",     //2 cycles
-                    "  STA $0200",    //4 cycles
-                    "  LDA #$05",     //2 cycles
-                    "  STA $0201",    //4 cycles
-                    "  LDA #$08",     //2 cycles
-                    "  STA $0202"     //4 cycles
-                }).ToArray(),
-                status => (status.Accumulator == 0x08) && (status.ProgramCounter.ToInt32 == 1551) && (status.Cycles == 18)),
-            new  CpuTestData(
-                1536,
-                new Assembler.Assembler().Assemble(new String[]
-                {
-                    "  LDX #$08",     //2 cycles
-                    "decrement:",
-                    "  DEX",          //2 cycles
-                    "  STX $0200",    //4 cycles
-                    "  CPX #$03",     //2 cycles
-                    "  BNE decrement",//branch taken 4 times: 14
-                    "  STX $0201",    //4 cycles
-                    "  BRK"           //7 cycles
-                }).ToArray(),
-                status => (status.X == 0x03) && (status.ProgramCounter.ToInt32 == 1550) && status.Flags.Carry && status.Flags.Zero && (status.Cycles == 67)),
-            new  CpuTestData(
-                1536,
-                new Assembler.Assembler().Assemble(new String[]
-                {
-                    "  LDX #$00",       //2 cycles
-                    "  LDY #$00",       //2 cycles
-                    "firstloop:",
-                    "  TXA",            //2 cycles
-                    "  STA $0200,Y",    //5 cycles
-                    "  PHA",            //3 cycles
-                    "  INX",            //2 cycles
-                    "  INY",            //2 cycles
-                    "  CPY #$10",       //2 cycles
-                    "  BNE firstloop ;loop until Y is $10", //branch taken 15 times: 47
-                    "secondloop:",
-                    "  PLA",            //4 cycles
-                    "  STA $0200,Y",    //5 cycles
-                    "  INY",            //2 cycles
-                    "  CPY #$20      ;loop until Y is $20", //2 cycles
-                    "  BNE secondloop"  //branch taken 15 times: 47
-                }).ToArray(),
-                status => (status.X == 0x10) && (status.Y == 0x20) && (status.ProgramCounter.ToInt32 == 1560) && status.Flags.Carry && status.Flags.Zero && (status.Cycles == 562)),
-        };
+                    new  CpuTestData(
+                        1536,
+                        new Assembler.Assembler().Assemble(new String[]
+                        {
+                            "  LDA #$01",     //2 cycles
+                            "  STA $0200",    //4 cycles
+                            "  LDA #$05",     //2 cycles
+                            "  STA $0201",    //4 cycles
+                            "  LDA #$08",     //2 cycles
+                            "  STA $0202"     //4 cycles
+                        }).ToArray(),
+                        status => (status.Accumulator == 0x08) && (status.ProgramCounter.ToInt32 == 1551) && (status.Cycles == 18)),
+                    new  CpuTestData(
+                        1536,
+                        new Assembler.Assembler().Assemble(new String[]
+                        {
+                            "  LDX #$08",     //2 cycles
+                            "decrement:",
+                            "  DEX",          //2 cycles
+                            "  STX $0200",    //4 cycles
+                            "  CPX #$03",     //2 cycles
+                            "  BNE decrement",//branch taken 4 times: 14
+                            "  STX $0201",    //4 cycles
+                            "  BRK"           //7 cycles
+                        }).ToArray(),
+                        status => (status.X == 0x03) && (status.ProgramCounter.ToInt32 == 1550) && status.Flags.Carry && status.Flags.Zero && (status.Cycles == 67)),
+                    new  CpuTestData(
+                        1536,
+                        new Assembler.Assembler().Assemble(new String[]
+                        {
+                            "  LDX #$00",       //2 cycles
+                            "  LDY #$00",       //2 cycles
+                            "firstloop:",
+                            "  TXA",            //2 cycles
+                            "  STA $0200,Y",    //5 cycles
+                            "  PHA",            //3 cycles
+                            "  INX",            //2 cycles
+                            "  INY",            //2 cycles
+                            "  CPY #$10",       //2 cycles
+                            "  BNE firstloop ;loop until Y is $10", //branch taken 15 times: 47
+                            "secondloop:",
+                            "  PLA",            //4 cycles
+                            "  STA $0200,Y",    //5 cycles
+                            "  INY",            //2 cycles
+                            "  CPY #$20      ;loop until Y is $20", //2 cycles
+                            "  BNE secondloop"  //branch taken 15 times: 47
+                        }).ToArray(),
+                        status => (status.X == 0x10) && (status.Y == 0x20) && (status.ProgramCounter.ToInt32 == 1560) && status.Flags.Carry && status.Flags.Zero && (status.Cycles == 562))
+                }.Select(ctd => new CpuTestData[] { ctd });
+            }
+        }
+    }
+
+    internal static class EnumerableExtensions
+    {
+        internal static IEnumerable<object[]> ToObjectArrayList<T>(this IEnumerable<T> source)
+        {
+            return source.Select(e => new object[] { e }).ToList();
+        }
     }
 }
