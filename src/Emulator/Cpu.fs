@@ -248,7 +248,7 @@
                     | 0x24uy -> this.BIT (ZeroPage(gba 1)) (apc this.Status 2) 3
                     | 0x2Cuy -> this.BIT (Absolute(gwa 1)) (apc this.Status 3) 4
                     //BRK - Force Interrupt
-                    | 0x00uy -> this.BRK Implied (apc this.Status 1) //TODO Check if BRK advance the PC
+                    | 0x00uy -> this.BRK Implied (apc this.Status 1) //BRK advances the PC by one
                     //Comparisons - CMP, CPX, CPY
                     | 0xC9uy -> this.Compare (Immediate(gba 1)) (apc this.Status 2) this.Status.Accumulator 2
                     | 0xC5uy -> this.Compare (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
@@ -356,8 +356,8 @@
                     | 0x84uy -> this.Store (ZeroPage(gba 1)) (apc this.Status 2) this.Status.Accumulator 3
                     | 0x94uy -> this.Store (ZeroPageX(gba 1)) (apc this.Status 2) this.Status.Accumulator 4
                     | 0x8Cuy -> this.Store (Absolute(gwa 1)) (apc this.Status 3) this.Status.Accumulator 4
-                    //Not recognized...
-                    | _ -> failwithf "Opcode '%s' not supported" (BitConverter.ToString [| opcode |])
+                    //Invalid opcode, do nothing
+                    | _ -> this.Status
 
         member private this.Branch opcode offset status =
             let jump =
